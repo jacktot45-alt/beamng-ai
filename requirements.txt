@@ -1,0 +1,28 @@
+# BeamNG.drive RL vision agent - Python 3.10 / 3.11 (64-bit, Windows)
+#
+#   pip install -r requirements.txt
+#
+# Extra stappen die pip NIET voor je doet:
+#   1) ViGEmBus-driver (voor vgamepad) -> https://github.com/nefarius/ViGEmBus/releases
+#      De installer van vgamepad biedt dit meestal zelf aan. Herstart daarna je PC.
+#   2) Tesseract-OCR (als je OCR_BACKEND = "pytesseract" gebruikt)
+#      -> https://github.com/UB-Mannheim/tesseract/wiki
+#      Zet het pad naar tesseract.exe in settings.TESSERACT_CMD.
+#   3) Met een NVIDIA-GPU: installeer torch met CUDA in plaats van de CPU-build:
+#      pip install torch --index-url https://download.pytorch.org/whl/cu121
+
+vgamepad>=0.1.0
+mss>=9.0.0
+
+# LET OP: opencv-python, NIET opencv-python-headless.
+# De headless variant heeft geen GUI en dan werkt de live viewer niet.
+opencv-python>=4.8.0
+
+numpy>=1.24,<3
+gymnasium>=0.29
+stable-baselines3>=2.2.0
+torch>=2.0.0
+
+# OCR-backend: pytesseract (licht, CPU). Alternatief: easyocr (zwaarder, GPU).
+pytesseract>=0.3.10
+# easyocr>=1.7.0
