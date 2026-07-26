@@ -1,0 +1,22 @@
+# Kalibratie is per PC (schermresolutie / UI-schaal) -> niet delen
+config.json
+
+# Trainingsoutput
+checkpoints/
+logs/
+*.zip
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+env/
+*.egg-info/
+.pytest_cache/
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
