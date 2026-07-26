@@ -9,6 +9,11 @@ realtime.
 **Doel van de agent:** ongeveer **50 km/u** rijden zonder te crashen of van de
 weg af te gaan.
 
+> ### 👉 Nog nooit met Python gewerkt?
+> Begin dan niet hier, maar bij **[TUTORIAL.md](TUTORIAL.md)** — een
+> klik-voor-klik handleiding die je in ~45 minuten van niks naar een
+> trainende AI brengt. Dit bestand is de technische naslag.
+
 ---
 
 ## Bestanden
