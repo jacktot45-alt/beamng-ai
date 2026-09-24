@@ -1,0 +1,2406 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>JBeam Builder</title>
+<style>
+:root{
+  --bg:#111318;--panel:#171a20;--panel-2:#1e2229;--panel-3:#252a33;
+  --line:#272c35;--line-2:#363c48;--text:#d8dce4;--muted:#8c93a3;--dim:#5d6474;
+  --accent:#ff8a1f;--accent-2:#ffb26b;--accent-bg:rgba(255,138,31,.14);
+  --ok:#3ecf8e;--warn:#f5c451;--err:#ef5b5b;
+  --x:#e5534b;--y:#57c47a;--z:#4f8ff7;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html,body{margin:0;height:100%;background:var(--bg);color:var(--text);font:12px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,Ubuntu,sans-serif;overflow:hidden}
+#app{display:grid;grid-template-columns:268px minmax(0,1fr) 308px;grid-template-rows:42px minmax(0,1fr);height:100vh}
+button{font:inherit;color:var(--text);background:var(--panel-2);border:1px solid var(--line-2);border-radius:6px;padding:4px 9px;cursor:pointer;white-space:nowrap}
+button:hover{background:var(--panel-3);border-color:#4a5160}
+button:disabled{opacity:.4;cursor:default}
+button.primary{background:var(--accent);border-color:var(--accent);color:#1d1204;font-weight:600}
+button.primary:hover{background:#ff9a3c}
+button.danger:hover{border-color:var(--err);color:var(--err)}
+button.icon{padding:0 6px;min-width:22px;height:22px;line-height:20px;background:transparent;border-color:transparent;color:var(--muted)}
+button.icon:hover{background:var(--panel-3);border-color:var(--line-2);color:var(--text)}
+input,select,textarea{font:inherit;color:var(--text);background:#101216;border:1px solid var(--line-2);border-radius:5px;padding:4px 6px;width:100%;min-width:0}
+input:focus,select:focus,textarea:focus{outline:none;border-color:var(--accent)}
+input[type=checkbox]{width:auto;accent-color:var(--accent);margin:0}
+input[type=range]{padding:0;border:0;background:none;accent-color:var(--accent)}
+kbd{font:10px/1 ui-monospace,SFMono-Regular,Menlo,monospace;padding:2px 4px;border:1px solid var(--line-2);border-bottom-width:2px;border-radius:4px;color:var(--muted);background:#14171c}
+.muted{color:var(--muted)}.small{font-size:11px}
+a{color:var(--accent-2)}
+
+/* top bar */
+#topbar{grid-column:1/-1;display:flex;align-items:center;gap:6px;padding:0 10px;background:var(--panel);border-bottom:1px solid var(--line)}
+.brand{display:flex;align-items:center;gap:8px;font-weight:650;font-size:13px;letter-spacing:.01em;margin-right:6px}
+.brand svg{width:20px;height:20px;color:var(--accent)}
+.sep{width:1px;height:20px;background:var(--line-2);margin:0 4px}
+.spacer{flex:1}
+
+/* side panels */
+#left,#right{background:var(--panel);display:flex;flex-direction:column;min-height:0;overflow:hidden}
+#left{border-right:1px solid var(--line)}
+#right{border-left:1px solid var(--line)}
+.section{padding:10px 12px;border-bottom:1px solid var(--line)}
+h3{font-size:11px;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);margin:0 0 8px;font-weight:600}
+.modes{display:grid;grid-template-columns:repeat(4,1fr);gap:4px;margin-bottom:10px}
+.mode{display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 2px 5px;border-radius:7px}
+.mode svg{width:20px;height:20px;fill:currentColor}
+.mode span{font-size:11px}
+.mode kbd{font-size:9px;padding:1px 3px}
+.mode.active{background:var(--accent-bg);border-color:var(--accent);color:var(--accent-2)}
+.row{display:grid;grid-template-columns:100px minmax(0,1fr);align-items:center;gap:6px;margin-bottom:5px}
+.row.top{align-items:start}
+.row>label{color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pair{display:grid;grid-template-columns:1fr 52px;gap:4px}
+.check{display:flex;align-items:center;gap:7px;margin:6px 0;color:var(--text);cursor:pointer}
+.hint{color:var(--muted);margin:8px 0 0;font-size:11px;line-height:1.55}
+.hint b{color:var(--text);font-weight:600}
+.xyz{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:4px}
+.xyz label{position:relative;display:block}
+.xyz label span{position:absolute;left:6px;top:50%;transform:translateY(-50%);font-size:10px;font-weight:700;pointer-events:none}
+.xyz label:nth-child(1) span{color:var(--x)}.xyz label:nth-child(2) span{color:var(--y)}.xyz label:nth-child(3) span{color:var(--z)}
+.xyz input{padding-left:17px}
+.btnrow{display:flex;flex-wrap:wrap;gap:5px;margin-top:8px}
+button.wide{width:100%;margin-top:6px}
+
+/* tabs & lists */
+.tabs{display:flex;border-bottom:1px solid var(--line);flex:none}
+.tab{flex:1;border:0;border-radius:0;background:none;padding:8px 2px 7px;color:var(--muted);border-bottom:2px solid transparent}
+.tab:hover{background:none;color:var(--text)}
+.tab.active{color:var(--text);border-bottom-color:var(--accent)}
+.tab .count{color:var(--dim);font-size:10px;margin-left:2px}
+.filter{padding:8px 10px 6px;flex:none}
+#gnew-row{display:flex;gap:4px;padding:0 10px 6px;flex:none}
+#gnew-row button{flex:none}
+.list{flex:1;overflow:auto;padding-bottom:10px;min-height:0}
+.item,.gitem{display:flex;align-items:center;gap:7px;padding:3px 12px;cursor:pointer;white-space:nowrap;min-height:23px}
+.item:hover,.gitem:hover{background:#1f232b}
+.item.sel{background:var(--accent-bg);color:#ffd8b3}
+.item .nm,.gitem .nm{overflow:hidden;text-overflow:ellipsis}
+.item .sub,.gitem .sub{color:var(--dim);margin-left:auto;overflow:hidden;text-overflow:ellipsis;font-size:11px;padding-left:6px}
+.badge{font-size:9px;padding:0 4px;border-radius:3px;background:#2a2f39;color:var(--muted);flex:none}
+.gitem .sw{width:10px;height:10px;border-radius:3px;flex:none}
+.gbtns{display:flex;gap:0;flex:none}
+.empty,.more{color:var(--dim);padding:12px;text-align:center}
+.kind{display:inline-block;flex:none}
+.kind.n{width:8px;height:8px;border-radius:50%;background:#4fc3f7}
+.kind.b{width:11px;height:3px;border-radius:2px;background:#9fb0c8}
+.kind.t{width:9px;height:8px;background:#3ecf8e;clip-path:polygon(50% 0,100% 100%,0 100%)}
+
+/* right panel */
+.panel-body{flex:1;overflow:auto;min-height:0}
+.psec{padding:10px 12px 12px;border-bottom:1px solid var(--line)}
+.psec h3{display:flex;align-items:center;gap:6px;text-transform:none;letter-spacing:0;font-size:12.5px;color:var(--text);font-weight:500}
+.psec h3 b{font-weight:650}
+.psec h3 .muted{margin-left:auto;font-weight:400;font-size:11px}
+.psec h3.caps{text-transform:uppercase;letter-spacing:.07em;font-size:11px;color:var(--muted);font-weight:600}
+.sub-h{color:var(--dim);font-size:10.5px;text-transform:uppercase;letter-spacing:.06em;margin:10px 0 5px}
+.chips{display:flex;flex-wrap:wrap;align-items:center;gap:4px}
+.chip{display:inline-flex;align-items:center;gap:5px;padding:1px 2px 1px 7px;border-radius:10px;background:#242933;border:1px solid var(--line-2);max-width:100%}
+.chip i{width:7px;height:7px;border-radius:50%;background:var(--gc)}
+.chip em{font-style:normal;color:var(--dim);font-size:10px}
+.chip button{border:0;background:none;padding:0 4px;color:var(--muted);line-height:1}
+.chip button:hover{color:var(--err);background:none}
+select.gadd{width:auto;padding:1px 4px;font-size:11px;color:var(--muted)}
+.crow{display:grid;grid-template-columns:100px minmax(0,1fr) 22px;gap:6px;align-items:center;margin-bottom:4px}
+.crow .ck{color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:11px}
+.custom-add{display:grid;grid-template-columns:100px minmax(0,1fr) auto;gap:6px;margin-top:6px}
+.empty-sel{padding:18px 14px;color:var(--text)}
+.empty-sel p{margin:0 0 10px}
+.meshcard{display:flex;flex-direction:column;gap:2px;padding:8px 10px;border:1px solid var(--line-2);border-radius:7px;background:#14171c;margin-bottom:6px}
+.meshcard b{font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.meshcard span{color:var(--muted);font-size:11px}
+.rng{display:grid;grid-template-columns:minmax(0,1fr) 38px;align-items:center;gap:6px}
+.rng span{color:var(--muted);font-size:11px;text-align:right;font-variant-numeric:tabular-nums}
+.stat{display:flex;justify-content:space-between;padding:2px 0;color:var(--muted)}
+.stat b{color:var(--text);font-weight:600;font-variant-numeric:tabular-nums}
+
+/* viewport */
+#viewport{position:relative;min-width:0;min-height:0;overflow:hidden;background:#14161b}
+#gl{position:absolute;inset:0;width:100%;height:100%;display:block;touch-action:none}
+#overlay{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+.views{position:absolute;top:8px;right:8px;display:flex;gap:3px;background:rgba(23,26,32,.85);border:1px solid var(--line);border-radius:8px;padding:3px}
+.views button{padding:3px 7px;font-size:11px;background:transparent;border-color:transparent;color:var(--muted)}
+.views button:hover{color:var(--text);background:var(--panel-3)}
+#status{position:absolute;left:0;right:0;bottom:0;height:25px;display:flex;align-items:center;gap:16px;padding:0 10px;background:rgba(17,19,24,.88);border-top:1px solid var(--line);color:var(--muted);font-size:11px;white-space:nowrap;overflow:hidden}
+#status b{color:var(--text);font-weight:600}
+#st-hint{flex:1;overflow:hidden;text-overflow:ellipsis}
+#st-cursor,#st-count{font-variant-numeric:tabular-nums}
+#empty{position:absolute;left:50%;top:44%;transform:translate(-50%,-50%);width:min(420px,86%);background:rgba(23,26,32,.92);border:1px solid var(--line-2);border-radius:12px;padding:18px 20px;text-align:center;box-shadow:0 10px 40px rgba(0,0,0,.35)}
+#empty h2{margin:0 0 6px;font-size:15px;font-weight:650}
+#empty p{margin:0 0 12px;color:var(--muted)}
+#empty .btnrow{justify-content:center;margin:0 0 10px}
+#boot{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);padding:14px 18px;background:var(--panel);border:1px solid var(--line-2);border-radius:10px;z-index:200;text-align:center;line-height:1.6}
+#boot.err{border-color:var(--err)}
+
+/* toasts, modal, drop */
+#toasts{position:fixed;bottom:38px;left:50%;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;gap:6px;z-index:300;pointer-events:none}
+.toast{background:#232833;border:1px solid var(--line-2);padding:7px 13px;border-radius:7px;box-shadow:0 6px 24px rgba(0,0,0,.45);transition:opacity .25s,transform .25s;max-width:70vw}
+.toast.ok{border-color:rgba(62,207,142,.6)}.toast.warn{border-color:rgba(245,196,81,.7)}.toast.err{border-color:var(--err)}
+.toast.out{opacity:0;transform:translateY(6px)}
+.modal-back{position:fixed;inset:0;background:rgba(5,6,8,.6);display:flex;align-items:center;justify-content:center;z-index:250}
+.modal{background:var(--panel);border:1px solid var(--line-2);border-radius:11px;width:min(520px,94vw);max-height:88vh;display:flex;flex-direction:column;box-shadow:0 20px 60px rgba(0,0,0,.5)}
+.modal.wide{width:min(940px,95vw)}
+.modal header{padding:12px 16px;font-weight:650;font-size:13.5px;border-bottom:1px solid var(--line)}
+.modal .body{padding:14px 16px;overflow:auto}
+.modal .body p{margin:0 0 10px}
+.modal footer{padding:10px 16px;display:flex;justify-content:flex-end;gap:8px;border-top:1px solid var(--line)}
+textarea.code{font:11.5px/1.5 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;height:56vh;resize:vertical;white-space:pre;tab-size:4}
+.exp-bar{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+.warns{margin-bottom:10px;border-left:3px solid var(--warn);background:rgba(245,196,81,.07);padding:7px 10px;border-radius:0 6px 6px 0}
+.warns div{margin:2px 0}
+table.keys{border-collapse:collapse;width:100%}
+table.keys td{padding:4px 6px;border-bottom:1px solid var(--line);vertical-align:top}
+table.keys td:first-child{white-space:nowrap;color:var(--muted);width:42%}
+#drop{position:fixed;inset:0;border:3px dashed var(--accent);background:rgba(255,138,31,.07);display:none;align-items:center;justify-content:center;font-size:17px;z-index:280;pointer-events:none}
+#drop.on{display:flex}
+</style>
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js",
+    "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/"
+  }
+}
+</script>
+</head>
+<body>
+<div id="app">
+  <header id="topbar">
+    <div class="brand"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4.5 20 19H4Z" fill="currentColor" fill-opacity=".22" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/><path d="M12 4.5v14.5M8 11.8h8" stroke="currentColor" stroke-width="1.3"/><circle cx="12" cy="4.5" r="2.2" fill="currentColor"/><circle cx="20" cy="19" r="2.2" fill="currentColor"/><circle cx="4" cy="19" r="2.2" fill="currentColor"/></svg>JBeam Builder</div>
+    <div class="sep"></div>
+    <button data-act="new" title="Clear nodes, beams and triangles (undoable)">New</button>
+    <button data-act="open-project" title="Open a saved project (.json)">Open project…</button>
+    <button data-act="save-project" title="Save project (Ctrl+S)">Save project</button>
+    <div class="sep"></div>
+    <button data-act="import-mesh" title="Import a reference mesh (OBJ, GLB, glTF)">Import mesh…</button>
+    <button data-act="import-jbeam" title="Load nodes/beams/triangles from an existing .jbeam">Import .jbeam…</button>
+    <button data-act="export" class="primary">Export .jbeam</button>
+    <div class="spacer"></div>
+    <button data-act="undo" title="Undo (Ctrl+Z)">Undo</button>
+    <button data-act="redo" title="Redo (Ctrl+Shift+Z / Ctrl+Y)">Redo</button>
+    <button data-act="help" title="Shortcuts and tips">?</button>
+  </header>
+
+  <aside id="left">
+    <div class="section">
+      <h3>Tools</h3>
+      <div class="modes">
+        <button class="mode" data-mode="select" title="Select / edit (V)"><svg viewBox="0 0 24 24"><path d="M6 3.5 18.5 12l-5.6 1.3-2.6 5.7Z"/></svg><span>Select</span><kbd>V</kbd></button>
+        <button class="mode" data-mode="node" title="Place node (N)"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="4.5"/><circle cx="12" cy="12" r="8.5" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".45"/></svg><span>Node</span><kbd>N</kbd></button>
+        <button class="mode" data-mode="beam" title="Place beam (B)"><svg viewBox="0 0 24 24"><path d="M6 18 18 6" stroke="currentColor" stroke-width="2.2"/><circle cx="6" cy="18" r="3.2"/><circle cx="18" cy="6" r="3.2"/></svg><span>Beam</span><kbd>B</kbd></button>
+        <button class="mode" data-mode="tri" title="Place collision triangle (T)"><svg viewBox="0 0 24 24"><path d="M12 5.5 19 18H5Z" fill-opacity=".3" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><circle cx="12" cy="5.5" r="2.4"/><circle cx="19" cy="18" r="2.4"/><circle cx="5" cy="18" r="2.4"/></svg><span>Triangle</span><kbd>T</kbd></button>
+      </div>
+      <div id="tool-opts"></div>
+    </div>
+    <div class="tabs" id="otabs">
+      <button class="tab" data-otab="nodes">Nodes<span class="count" id="cnt-nodes"></span></button>
+      <button class="tab" data-otab="beams">Beams<span class="count" id="cnt-beams"></span></button>
+      <button class="tab" data-otab="tris">Tris<span class="count" id="cnt-tris"></span></button>
+      <button class="tab" data-otab="groups">Groups<span class="count" id="cnt-groups"></span></button>
+    </div>
+    <div class="filter"><input id="filter" placeholder="Filter by name or group…" spellcheck="false" autocomplete="off"></div>
+    <div id="gnew-row" hidden><input id="gnew" placeholder="New group name, e.g. chassis" spellcheck="false" autocomplete="off"><button data-act="group-create">Add</button></div>
+    <div class="list" id="outliner"></div>
+  </aside>
+
+  <main id="viewport">
+    <canvas id="gl"></canvas>
+    <canvas id="overlay"></canvas>
+    <div class="views" title="Camera views (BeamNG axes)">
+      <button data-act="view" data-view="front" title="Look at the front (camera on −Y)">Front</button>
+      <button data-act="view" data-view="rear" title="Look at the rear (camera on +Y)">Rear</button>
+      <button data-act="view" data-view="left" title="Look at the left side (camera on +X)">Left</button>
+      <button data-act="view" data-view="right" title="Look at the right side (camera on −X)">Right</button>
+      <button data-act="view" data-view="top" title="Top view (camera on +Z)">Top</button>
+      <button data-act="view" data-view="iso" title="Three-quarter view">3D</button>
+      <button data-act="frame-all" title="Frame everything">Fit</button>
+    </div>
+    <div id="empty" hidden>
+      <h2>Start a part</h2>
+      <p>Import a reference mesh to place nodes on, load an existing .jbeam, or press <kbd>N</kbd> and click to place nodes in free space.</p>
+      <div class="btnrow"><button class="primary" data-act="import-mesh">Import mesh…</button><button data-act="import-jbeam">Import .jbeam…</button><button data-act="open-project">Open project…</button></div>
+      <p class="small">Files can also be dragged onto the window.</p>
+    </div>
+    <div id="status"><span id="st-hint"></span><span id="st-cursor"></span><span id="st-count"></span></div>
+  </main>
+
+  <aside id="right">
+    <div class="tabs" id="rtabs">
+      <button class="tab" data-rtab="sel">Selection</button>
+      <button class="tab" data-rtab="part">Part &amp; export</button>
+      <button class="tab" data-rtab="scene">Mesh &amp; view</button>
+    </div>
+    <div class="panel-body" id="rp-sel"></div>
+    <div class="panel-body" id="rp-part" hidden></div>
+    <div class="panel-body" id="rp-scene" hidden></div>
+  </aside>
+</div>
+<div id="toasts"></div>
+<div id="drop">Drop a mesh (.obj .glb .gltf + .bin), a .jbeam or a project .json</div>
+<div id="boot">Loading Three.js…</div>
+<input type="file" id="file-mesh" accept=".obj,.glb,.gltf,.bin,.png,.jpg,.jpeg,.webp" multiple hidden>
+<input type="file" id="file-jbeam" accept=".jbeam,.json" hidden>
+<input type="file" id="file-project" accept=".json" hidden>
+<script>
+setTimeout(function () {
+  if (window.__jbbReady) return;
+  var b = document.getElementById('boot');
+  if (b) { b.className = 'err'; b.innerHTML = 'Could not load Three.js from cdn.jsdelivr.net.<br>JBeam Builder needs an internet connection to load its 3D library.'; }
+}, 15000);
+</script>
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { TransformControls } from 'three/addons/controls/TransformControls.js';
+import { OBJLoader } from 'three/addons/loaders/OBJLoader.js';
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import { LineSegments2 } from 'three/addons/lines/LineSegments2.js';
+import { LineSegmentsGeometry } from 'three/addons/lines/LineSegmentsGeometry.js';
+import { LineMaterial } from 'three/addons/lines/LineMaterial.js';
+
+/* ============================== helpers ============================== */
+const $ = (s, r = document) => r.querySelector(s);
+const $$ = (s, r = document) => [...r.querySelectorAll(s)];
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const J = v => JSON.stringify(v);
+class GroupComment { constructor(groups) { this.groups = groups; } }
+const isObj = v => v !== null && typeof v === 'object' && !Array.isArray(v) && !(v instanceof GroupComment);
+const same = (a, b) => a === b || J(a) === J(b);
+const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
+const r6 = v => Math.round(v * 1e6) / 1e6 + 0;
+const fmtInt = n => Math.round(n).toLocaleString('en-US');
+// BeamNG is Z-up (vehicles face −Y); three.js is Y-up. Proper rotation, so handedness and winding are preserved.
+const toThree = p => new THREE.Vector3(p[0], p[2], -p[1]);
+const fromThree = v => [r6(v.x), r6(-v.z), r6(v.y)];
+const dist3 = (a, b) => Math.hypot(a[0] - b[0], a[1] - b[1], a[2] - b[2]);
+const NUM_RE = /^[-+]?(?:\d+\.?\d*|\.\d+)(?:[eE][-+]?\d+)?$/;
+const parseNumOrStr = s => {
+  s = String(s).trim();
+  if (s === '') return undefined;
+  if (NUM_RE.test(s)) { const v = Number(s); if (Number.isFinite(v)) return v; }
+  return s;
+};
+const parseLoose = s => { s = String(s).trim(); if (s === '') return undefined; try { return JSON.parse(s); } catch { return s; } };
+const pairKey = (a, b) => (a < b ? a + ',' + b : b + ',' + a);
+const triKey = ns => [...ns].sort((x, y) => x - y).join(',');
+const safeFile = s => (String(s).trim() || 'part').replace(/[\\/:*?"<>|\s]+/g, '_');
+const normGroups = g => typeof g === 'string' ? (g ? [g] : []) : Array.isArray(g) ? [...new Set(g.filter(x => typeof x === 'string' && x))] : [];
+const cleanGroupName = s => String(s).replace(/[\r\n\t]+/g, ' ').trim();
+
+function groupHue(name) { let h = 2166136261; for (let i = 0; i < name.length; i++) { h ^= name.charCodeAt(i); h = Math.imul(h, 16777619); } return (h >>> 0) % 360; }
+const groupColorCache = new Map();
+function groupColor(name) {
+  let c = groupColorCache.get(name);
+  if (!c) { c = new THREE.Color().setHSL(groupHue(name) / 360, 0.62, 0.58); groupColorCache.set(name, c); }
+  return c;
+}
+const groupCss = name => `hsl(${groupHue(name)} 62% 58%)`;
+
+/* ========================= jbeam property schema ========================= */
+const NODE_FIELDS = [
+  { key: 'nodeWeight', type: 'num', hint: 'Node mass in kg' },
+  { key: 'frictionCoef', type: 'num', hint: 'Friction coefficient against the ground' },
+  { key: 'nodeMaterial', type: 'enum', options: ['|NM_METAL', '|NM_PLASTIC', '|NM_RUBBER', '|NM_WOOD', '|NM_GLASS'], hint: 'Surface material (sounds, particles)' },
+  { key: 'collision', type: 'bool', hint: 'Collides with the world and other vehicles' },
+  { key: 'selfCollision', type: 'bool', hint: 'Collides with triangles of the same vehicle' },
+  { key: 'fixed', type: 'bool', hint: 'Node is pinned in place' },
+];
+const BEAM_FIELDS = [
+  { key: 'beamType', type: 'enum', options: ['|NORMAL', '|ANISOTROPIC', '|SUPPORT', '|BOUNDED'] },
+  { key: 'beamSpring', type: 'num', hint: 'Stiffness (N/m)' },
+  { key: 'beamDamp', type: 'num', hint: 'Damping (N/m/s)' },
+  { key: 'beamDeform', type: 'num', hint: 'Force at which the beam deforms (N)' },
+  { key: 'beamStrength', type: 'num', hint: 'Force at which the beam breaks (N), or FLT_MAX' },
+  { key: 'optional', type: 'bool', hint: 'Skip this beam instead of erroring when one of its nodes does not exist' },
+];
+const BEAM_TYPE_FIELDS = {
+  '|ANISOTROPIC': ['springExpansion', 'dampExpansion', 'transitionZone'],
+  '|SUPPORT': ['beamLongBound'],
+  '|BOUNDED': ['beamLongBound', 'beamShortBound', 'beamLimitSpring', 'beamLimitDamp'],
+};
+const TRI_FIELDS = [
+  { key: 'dragCoef', type: 'num', hint: 'Aerodynamic drag coefficient' },
+  { key: 'liftCoef', type: 'num', hint: 'Aerodynamic lift coefficient' },
+  { key: 'groundModel', type: 'text', hint: 'e.g. metal' },
+  { key: 'triangleType', type: 'enum', options: ['NORMALTYPE', 'NONCOLLIDABLE'] },
+];
+const NODE_KNOWN = new Set(NODE_FIELDS.map(f => f.key));
+const BEAM_KNOWN = new Set(BEAM_FIELDS.map(f => f.key));
+const TRI_KNOWN = new Set(TRI_FIELDS.map(f => f.key));
+const NODE_ORDER = NODE_FIELDS.map(f => f.key);
+const BEAM_ORDER = ['beamType', 'beamSpring', 'beamDamp', 'beamDeform', 'beamStrength', 'beamPrecompression', 'optional'];
+const TRI_ORDER = TRI_FIELDS.map(f => f.key);
+const RESERVED_KEYS = new Set(['id', 'posX', 'posY', 'posZ', 'id1', 'id2', 'id3', 'id1:', 'id2:', 'id3:']);
+
+/* ================================ state ================================ */
+const DEFAULT_TEMPLATES = () => ({
+  node: { nodeWeight: 25, frictionCoef: 1, nodeMaterial: '|NM_METAL', collision: true, selfCollision: true },
+  beam: { beamType: '|NORMAL', beamSpring: 4300000, beamDamp: 580, beamDeform: 220000, beamStrength: 'FLT_MAX' },
+  tri: {},
+});
+function emptyModel() {
+  return {
+    part: { name: 'my_part', slotType: 'main', infoName: 'My Part', authors: '', infoExtra: {} },
+    nodes: [],   // { id, name, pos:[x,y,z] (BeamNG coords), groups:[], props:{} }
+    beams: [],   // { id, n:[nodeId,nodeId], groups:[], props:{} }
+    tris: [],    // { id, n:[nodeId,nodeId,nodeId], groups:[], props:{} }
+    groups: [],
+    defaults: DEFAULT_TEMPLATES(),
+    extraSections: null,
+  };
+}
+let model = emptyModel();
+const settings = {
+  export: { decimals: 4, comments: true, info: true, keepExtra: true },
+  display: { nodePx: 5, beamPx: 2, labels: 'sel', xray: true, colorByGroup: false, grid: true, gizmo: true, showNodes: true, showBeams: true, showTris: true },
+  mesh: { scale: 1, upAxis: 'y', yaw: 0, offset: [0, 0, 0], opacity: 0.5, wireframe: false, original: false, visible: true },
+  embedMesh: true,
+};
+const ui = { mode: 'select', pending: [], namePrefix: 'n', nameDigits: 3, nextName: '', activeGroup: '', chain: false, otab: 'nodes', rtab: 'sel', filter: '', lastListKey: null };
+const sel = new Set();          // keys like "n:12", "b:4", "t:7"
+let hover = null;
+let dirty = false;
+
+let nodeById = new Map(), beamById = new Map(), triById = new Map(), nodeIndex = new Map();
+let beamPairs = new Set(), triKeys = new Set();
+let uidCounter = 1;
+const uid = () => uidCounter++;
+const keyOf = (type, id) => type + ':' + id;
+function getByKey(k) {
+  const id = +k.slice(2);
+  return k[0] === 'n' ? nodeById.get(id) : k[0] === 'b' ? beamById.get(id) : triById.get(id);
+}
+const selOf = t => [...sel].filter(k => k[0] === t).map(getByKey).filter(Boolean);
+const selNodes = () => selOf('n'), selBeams = () => selOf('b'), selTris = () => selOf('t');
+const nodeName = id => nodeById.get(id)?.name ?? '?';
+const beamLen = b => { const a = nodeById.get(b.n[0]), c = nodeById.get(b.n[1]); return a && c ? dist3(a.pos, c.pos) : 0; };
+
+function reindex() {
+  nodeById = new Map(model.nodes.map(n => [n.id, n]));
+  nodeIndex = new Map(model.nodes.map((n, i) => [n.id, i]));
+  beamById = new Map(model.beams.map(b => [b.id, b]));
+  triById = new Map(model.tris.map(t => [t.id, t]));
+  beamPairs = new Set(model.beams.map(b => pairKey(b.n[0], b.n[1])));
+  triKeys = new Set(model.tris.map(t => triKey(t.n)));
+  let max = 0;
+  for (const arr of [model.nodes, model.beams, model.tris]) for (const e of arr) if (e.id > max) max = e.id;
+  if (uidCounter <= max) uidCounter = max + 1;
+  for (const k of [...sel]) if (!getByKey(k)) sel.delete(k);
+  if (hover && !getByKey(hover)) hover = null;
+  ui.pending = ui.pending.filter(id => nodeById.has(id));
+  const known = new Set(model.groups);
+  for (const arr of [model.nodes, model.beams, model.tris]) for (const e of arr) for (const g of e.groups) if (!known.has(g)) { known.add(g); model.groups.push(g); }
+  if (ui.activeGroup && !known.has(ui.activeGroup)) ui.activeGroup = '';
+}
+
+/* ================================ undo ================================ */
+const undoStack = [], redoStack = [];
+const snap = () => JSON.stringify(model);
+function pushUndo(label, data) {
+  undoStack.push({ label, data });
+  if (undoStack.length > 150) undoStack.shift();
+  redoStack.length = 0;
+  dirty = true;
+}
+// Every model edit goes through here so it can be undone. fn may return false to abort before touching the model.
+function mutate(label, fn) {
+  const before = snap();
+  const result = fn();
+  if (result === false) return false;
+  pushUndo(label, before);
+  modelChanged();
+  return result;
+}
+function undo() {
+  const e = undoStack.pop();
+  if (!e) return toast('Nothing to undo');
+  redoStack.push({ label: e.label, data: snap() });
+  model = JSON.parse(e.data); dirty = true; modelChanged(); selectionChanged();
+  toast('Undo: ' + e.label);
+}
+function redo() {
+  const e = redoStack.pop();
+  if (!e) return toast('Nothing to redo');
+  undoStack.push({ label: e.label, data: snap() });
+  model = JSON.parse(e.data); dirty = true; modelChanged(); selectionChanged();
+  toast('Redo: ' + e.label);
+}
+
+function normalizeModel(m) {
+  const out = emptyModel();
+  if (!isObj(m)) return out;
+  if (isObj(m.part)) {
+    const p = m.part;
+    out.part = { name: String(p.name ?? 'my_part'), slotType: String(p.slotType ?? 'main'), infoName: String(p.infoName ?? ''), authors: String(p.authors ?? ''), infoExtra: isObj(p.infoExtra) ? p.infoExtra : {} };
+  }
+  const idMap = new Map(), names = new Set(); let next = 1;
+  const props = p => (isObj(p) ? p : {});
+  for (const n of Array.isArray(m.nodes) ? m.nodes : []) {
+    if (!isObj(n) || typeof n.name !== 'string' || !n.name) continue;
+    let name = n.name, k = 2;
+    while (names.has(name)) name = `${n.name}_${k++}`;
+    names.add(name);
+    const pos = [0, 1, 2].map(i => (Array.isArray(n.pos) && Number.isFinite(+n.pos[i]) ? +n.pos[i] : 0));
+    const id = next++;
+    idMap.set(n.id, id);
+    out.nodes.push({ id, name, pos, groups: normGroups(n.groups), props: props(n.props) });
+  }
+  const link = (arr, count, target) => {
+    for (const e of Array.isArray(arr) ? arr : []) {
+      if (!isObj(e) || !Array.isArray(e.n) || e.n.length !== count) continue;
+      const ids = e.n.map(x => idMap.get(x));
+      if (ids.some(x => !x) || new Set(ids).size !== count) continue;
+      target.push({ id: next++, n: ids, groups: normGroups(e.groups), props: props(e.props) });
+    }
+  };
+  link(m.beams, 2, out.beams);
+  link(m.tris, 3, out.tris);
+  out.groups = normGroups(m.groups);
+  if (isObj(m.defaults)) for (const k of ['node', 'beam', 'tri']) if (isObj(m.defaults[k])) out.defaults[k] = m.defaults[k];
+  out.extraSections = isObj(m.extraSections) ? m.extraSections : null;
+  return out;
+}
+
+/* ============================== three setup ============================== */
+const vpEl = $('#viewport');
+const canvas = $('#gl');
+const overlay = $('#overlay');
+const octx = overlay.getContext('2d');
+const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
+renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+renderer.autoClear = false;
+renderer.setClearColor(0x14161b, 1);
+
+const scene = new THREE.Scene();      // reference mesh, grid, axes
+const editScene = new THREE.Scene();  // nodes, beams, triangles, gizmo (optionally drawn on top of the mesh)
+const camera = new THREE.PerspectiveCamera(40, 1, 0.01, 1000);
+camera.position.set(3.6, 2.3, 4.6);
+scene.add(camera);
+scene.add(new THREE.HemisphereLight(0xe8eefc, 0x30343c, 1.6));
+const camLight = new THREE.DirectionalLight(0xffffff, 1.8);
+camLight.position.set(0.6, 1.2, 1);
+camera.add(camLight, camLight.target);
+camLight.target.position.set(0, 0, -1);
+
+const controls = new OrbitControls(camera, canvas);
+controls.target.set(0, 0.5, 0);
+controls.zoomToCursor = true;
+controls.update();
+
+const grid = new THREE.GridHelper(20, 80, 0x3b4250, 0x22262e);
+grid.material.transparent = true;
+grid.material.depthWrite = false;
+scene.add(grid);
+
+const axes = (() => {
+  const L = 0.6, g = new THREE.BufferGeometry();
+  g.setFromPoints([[0, 0, 0], [L, 0, 0], [0, 0, 0], [0, L, 0], [0, 0, 0], [0, 0, L]].map(toThree));
+  const cols = [0xe5534b, 0xe5534b, 0x57c47a, 0x57c47a, 0x4f8ff7, 0x4f8ff7].flatMap(h => new THREE.Color(h).toArray());
+  g.setAttribute('color', new THREE.Float32BufferAttribute(cols, 3));
+  const l = new THREE.LineSegments(g, new THREE.LineBasicMaterial({ vertexColors: true, depthTest: false, transparent: true }));
+  l.renderOrder = 1;
+  return l;
+})();
+scene.add(axes);
+
+const meshRoot = new THREE.Group(), meshAxis = new THREE.Group();
+meshRoot.add(meshAxis);
+scene.add(meshRoot);
+const clayMat = new THREE.MeshStandardMaterial({ color: 0xa3acbd, roughness: 0.8, metalness: 0.05, side: THREE.DoubleSide, polygonOffset: true, polygonOffsetFactor: 1, polygonOffsetUnits: 1 });
+let meshObject = null, meshSource = null, meshInfo = null;
+
+const C = {
+  node: new THREE.Color('#4fc3f7'), fixed: new THREE.Color('#f06b6b'), ungrouped: new THREE.Color('#7c8596'),
+  sel: new THREE.Color('#ff8a1f'), hover: new THREE.Color('#ffffff'), pending: new THREE.Color('#ffe066'),
+  triF: new THREE.Color('#3ecf8e'), triB: new THREE.Color('#e5534b'), triSelB: new THREE.Color('#b8661c'),
+  beam: { '|NORMAL': new THREE.Color('#9fb0c8'), '|SUPPORT': new THREE.Color('#f5c451'), '|ANISOTROPIC': new THREE.Color('#b48cf2'), '|BOUNDED': new THREE.Color('#4dd4c6') },
+};
+
+/* nodes: instanced spheres, rescaled every frame so they keep a constant on-screen size */
+const sphereGeo = new THREE.SphereGeometry(1, 14, 10);
+const nodeMat = new THREE.MeshBasicMaterial({ color: 0xffffff });
+let nodesMesh = null, nodeCap = 0, nodeHi = new Uint8Array(0), nodeP = [];
+function ensureNodeCapacity(n) {
+  if (nodesMesh && n <= nodeCap) return;
+  if (nodesMesh) { editScene.remove(nodesMesh); nodesMesh.dispose(); }
+  nodeCap = Math.max(256, 2 ** Math.ceil(Math.log2(n + 1)));
+  nodesMesh = new THREE.InstancedMesh(sphereGeo, nodeMat, nodeCap);
+  nodesMesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
+  nodesMesh.frustumCulled = false;
+  nodesMesh.renderOrder = 3;
+  nodesMesh.setColorAt(0, C.node);
+  nodeHi = new Uint8Array(nodeCap);
+  editScene.add(nodesMesh);
+}
+ensureNodeCapacity(0);
+
+/* beams: fat lines */
+const beamMat = new LineMaterial({ linewidth: settings.display.beamPx, vertexColors: true, worldUnits: false });
+const beamLines = new LineSegments2(new LineSegmentsGeometry(), beamMat);
+beamLines.frustumCulled = false;
+beamLines.renderOrder = 2;
+editScene.add(beamLines);
+
+/* triangles: front and back faces drawn separately so winding is visible */
+const triFrontMat = new THREE.MeshBasicMaterial({ vertexColors: true, transparent: true, opacity: 0.42, side: THREE.FrontSide, depthWrite: false });
+const triBackMat = new THREE.MeshBasicMaterial({ vertexColors: true, transparent: true, opacity: 0.25, side: THREE.BackSide, depthWrite: false });
+const triFront = new THREE.Mesh(new THREE.BufferGeometry(), triFrontMat);
+const triBack = new THREE.Mesh(new THREE.BufferGeometry(), triBackMat);
+for (const m of [triFront, triBack]) { m.frustumCulled = false; m.renderOrder = 4; editScene.add(m); }
+
+/* placement preview + rubber band */
+const ghostMat = new THREE.MeshBasicMaterial({ color: 0xff8a1f, transparent: true, opacity: 0.8, depthTest: false });
+const ghost = new THREE.Mesh(sphereGeo, ghostMat);
+ghost.visible = false;
+ghost.renderOrder = 20;
+editScene.add(ghost);
+const pendMat = new LineMaterial({ color: 0xffe066, linewidth: 1.5, worldUnits: false, depthTest: false, transparent: true, opacity: 0.9 });
+const pendGeo = new LineSegmentsGeometry();
+pendGeo.setPositions(new Float32Array(18));
+const pendLine = new LineSegments2(pendGeo, pendMat);
+pendLine.frustumCulled = false;
+pendLine.visible = false;
+pendLine.renderOrder = 21;
+editScene.add(pendLine);
+function setPendingSegments(segs) {
+  const arr = pendGeo.attributes.instanceStart.data.array;
+  for (let i = 0; i < 3; i++) {
+    const [a, b] = segs[Math.min(i, segs.length - 1)] || [];
+    if (a) arr.set([a.x, a.y, a.z, b.x, b.y, b.z], i * 6);
+  }
+  pendGeo.attributes.instanceStart.data.needsUpdate = true;
+  pendLine.visible = segs.length > 0;
+}
+
+/* move gizmo */
+const gizmoProxy = new THREE.Object3D();
+gizmoProxy.rotation.x = -Math.PI / 2;  // local axes = BeamNG X/Y/Z, so gizmo colours match the axis legend
+editScene.add(gizmoProxy);
+const tctl = new TransformControls(camera, canvas);
+tctl.setSpace('local');
+tctl.setSize(0.8);
+editScene.add(tctl.getHelper());
+let gizmoNodeId = null, gizmoBefore = null, gizmoPressed = false;
+
+/* ============================== visuals ============================== */
+function rebuildViz() {
+  const d = settings.display;
+  ensureNodeCapacity(model.nodes.length);
+  nodesMesh.count = model.nodes.length;
+  nodeP = model.nodes.map(n => toThree(n.pos));
+  nodesMesh.visible = d.showNodes;
+
+  beamLines.geometry.dispose();
+  const bg = new LineSegmentsGeometry();
+  const nb = model.beams.length;
+  if (nb) {
+    const pos = new Float32Array(nb * 6);
+    model.beams.forEach((b, i) => {
+      const p = nodeP[nodeIndex.get(b.n[0])], q = nodeP[nodeIndex.get(b.n[1])];
+      pos.set([p.x, p.y, p.z, q.x, q.y, q.z], i * 6);
+    });
+    bg.setPositions(pos);
+    bg.setColors(new Float32Array(nb * 6));
+  }
+  beamLines.geometry = bg;
+  beamLines.visible = nb > 0 && d.showBeams;
+
+  triFront.geometry.dispose(); triBack.geometry.dispose();
+  const gF = new THREE.BufferGeometry(), gB = new THREE.BufferGeometry();
+  const nt = model.tris.length;
+  if (nt) {
+    const pos = new Float32Array(nt * 9);
+    model.tris.forEach((t, i) => t.n.forEach((id, j) => { const p = nodeP[nodeIndex.get(id)]; pos.set([p.x, p.y, p.z], i * 9 + j * 3); }));
+    const pa = new THREE.BufferAttribute(pos, 3);
+    gF.setAttribute('position', pa); gB.setAttribute('position', pa);
+    gF.setAttribute('color', new THREE.BufferAttribute(new Float32Array(nt * 9), 3));
+    gB.setAttribute('color', new THREE.BufferAttribute(new Float32Array(nt * 9), 3));
+  }
+  triFront.geometry = gF; triBack.geometry = gB;
+  triFront.visible = triBack.visible = nt > 0 && d.showTris;
+
+  grid.visible = d.grid;
+  beamMat.linewidth = d.beamPx;
+  projVersion++;
+  recolorAll();
+}
+
+function recolorAll() {
+  const d = settings.display;
+  for (let i = 0; i < model.nodes.length; i++) {
+    const n = model.nodes[i], k = 'n:' + n.id;
+    let c, hi = 1;
+    if (hover === k) c = C.hover;
+    else if (ui.pending.includes(n.id)) c = C.pending;
+    else if (sel.has(k)) c = C.sel;
+    else { hi = 0; c = d.colorByGroup ? (n.groups.length ? groupColor(n.groups[0]) : C.ungrouped) : n.props.fixed === true ? C.fixed : C.node; }
+    nodesMesh.setColorAt(i, c);
+    nodeHi[i] = hi;
+  }
+  if (nodesMesh.instanceColor) nodesMesh.instanceColor.needsUpdate = true;
+
+  const bAttr = beamLines.geometry.attributes.instanceColorStart;
+  if (bAttr && model.beams.length) {
+    const arr = bAttr.data.array;
+    model.beams.forEach((b, i) => {
+      const k = 'b:' + b.id;
+      const c = hover === k ? C.hover : sel.has(k) ? C.sel : d.colorByGroup ? (b.groups.length ? groupColor(b.groups[0]) : C.ungrouped) : C.beam[b.props.beamType] || C.beam['|NORMAL'];
+      arr[i * 6] = arr[i * 6 + 3] = c.r; arr[i * 6 + 1] = arr[i * 6 + 4] = c.g; arr[i * 6 + 2] = arr[i * 6 + 5] = c.b;
+    });
+    bAttr.data.needsUpdate = true;
+  }
+
+  const cF = triFront.geometry.attributes.color, cB = triBack.geometry.attributes.color;
+  if (cF && model.tris.length) {
+    model.tris.forEach((t, i) => {
+      const k = 't:' + t.id;
+      const f = hover === k ? C.hover : sel.has(k) ? C.sel : d.colorByGroup && t.groups.length ? groupColor(t.groups[0]) : C.triF;
+      const b = hover === k ? C.hover : sel.has(k) ? C.triSelB : C.triB;
+      for (let j = 0; j < 3; j++) { cF.setXYZ(i * 3 + j, f.r, f.g, f.b); cB.setXYZ(i * 3 + j, b.r, b.g, b.b); }
+    });
+    cF.needsUpdate = cB.needsUpdate = true;
+  }
+  requestRender();
+}
+
+/* ============================== rendering ============================== */
+let vpW = 1, vpH = 1, projVersion = 0, projCached = -1, proj = new Float32Array(0);
+const camDir = new THREE.Vector3(), _v = new THREE.Vector3(), _m4 = new THREE.Matrix4();
+let renderQueued = false, boxRect = null;
+function requestRender() { if (!renderQueued) { renderQueued = true; requestAnimationFrame(frame); } }
+function pxWorld(p) {
+  const depth = _v.copy(p).sub(camera.position).dot(camDir);
+  return Math.max(depth, camera.near) * 2 * Math.tan(THREE.MathUtils.degToRad(camera.fov) / 2) / vpH;
+}
+function frame() {
+  renderQueued = false;
+  camera.updateMatrixWorld();
+  camera.getWorldDirection(camDir);
+  const base = settings.display.nodePx;
+  for (let i = 0; i < model.nodes.length; i++) {
+    const p = nodeP[i], s = pxWorld(p) * base * (nodeHi[i] ? 1.4 : 1);
+    _m4.makeScale(s, s, s).setPosition(p);
+    nodesMesh.setMatrixAt(i, _m4);
+  }
+  nodesMesh.instanceMatrix.needsUpdate = true;
+  if (ghost.visible) ghost.scale.setScalar(pxWorld(ghost.position) * base * 1.25);
+  renderer.clear();
+  renderer.render(scene, camera);
+  if (settings.display.xray) renderer.clearDepth();
+  renderer.render(editScene, camera);
+  drawOverlay();
+}
+function resize() {
+  const r = vpEl.getBoundingClientRect();
+  vpW = Math.max(1, r.width); vpH = Math.max(1, r.height);
+  renderer.setSize(vpW, vpH, false);
+  camera.aspect = vpW / vpH;
+  camera.updateProjectionMatrix();
+  beamMat.resolution.set(vpW, vpH);
+  pendMat.resolution.set(vpW, vpH);
+  const dpr = window.devicePixelRatio || 1;
+  overlay.width = Math.round(vpW * dpr); overlay.height = Math.round(vpH * dpr);
+  projVersion++;
+  requestRender();
+}
+new ResizeObserver(resize).observe(vpEl);
+
+// Screen-space positions of all nodes (CSS px); z is NaN when behind the camera.
+function ensureProj() {
+  const n = model.nodes.length;
+  if (projCached === projVersion && proj.length === n * 3) return;
+  camera.updateMatrixWorld();
+  camera.getWorldDirection(camDir);
+  if (proj.length !== n * 3) proj = new Float32Array(n * 3);
+  for (let i = 0; i < n; i++) {
+    const p = nodeP[i];
+    const ahead = _v.copy(p).sub(camera.position).dot(camDir) > camera.near;
+    _v.copy(p).project(camera);
+    proj[i * 3] = (_v.x + 1) / 2 * vpW;
+    proj[i * 3 + 1] = (1 - _v.y) / 2 * vpH;
+    proj[i * 3 + 2] = ahead ? _v.z : NaN;
+  }
+  projCached = projVersion;
+}
+function screenOf(v) { _v.copy(v).project(camera); return [(_v.x + 1) / 2 * vpW, (1 - _v.y) / 2 * vpH]; }
+
+/* ============================== picking ============================== */
+function pickNode(x, y) {
+  if (!settings.display.showNodes) return null;
+  ensureProj();
+  const r = settings.display.nodePx + 5;
+  let best = -1, bestD = r * r, bestZ = Infinity;
+  for (let i = 0; i < model.nodes.length; i++) {
+    const z = proj[i * 3 + 2];
+    if (Number.isNaN(z)) continue;
+    const dx = proj[i * 3] - x, dy = proj[i * 3 + 1] - y, d = dx * dx + dy * dy;
+    if (d < bestD - 1 || (d <= bestD + 1 && z < bestZ)) { best = i; bestD = d; bestZ = z; }
+  }
+  return best >= 0 ? model.nodes[best] : null;
+}
+function pickBeam(x, y) {
+  if (!settings.display.showBeams) return null;
+  ensureProj();
+  let best = null, bestD = 36;
+  for (const b of model.beams) {
+    const i = nodeIndex.get(b.n[0]) * 3, j = nodeIndex.get(b.n[1]) * 3;
+    if (Number.isNaN(proj[i + 2]) || Number.isNaN(proj[j + 2])) continue;
+    const ax = proj[i], ay = proj[i + 1], bx = proj[j], by = proj[j + 1];
+    const vx = bx - ax, vy = by - ay, L = vx * vx + vy * vy;
+    const t = L ? clamp(((x - ax) * vx + (y - ay) * vy) / L, 0, 1) : 0;
+    const dx = ax + t * vx - x, dy = ay + t * vy - y, d = dx * dx + dy * dy;
+    if (d < bestD) { best = b; bestD = d; }
+  }
+  return best;
+}
+function pickTri(x, y) {
+  if (!settings.display.showTris) return null;
+  ensureProj();
+  let best = null, bestZ = Infinity;
+  for (const t of model.tris) {
+    const p = t.n.map(id => nodeIndex.get(id) * 3);
+    if (p.some(i => Number.isNaN(proj[i + 2]))) continue;
+    const [a, b, c] = p;
+    const s = (ux, uy, vx, vy) => (x - vx) * (uy - vy) - (ux - vx) * (y - vy);
+    const d1 = s(proj[a], proj[a + 1], proj[b], proj[b + 1]), d2 = s(proj[b], proj[b + 1], proj[c], proj[c + 1]), d3 = s(proj[c], proj[c + 1], proj[a], proj[a + 1]);
+    const neg = d1 < 0 || d2 < 0 || d3 < 0, pos = d1 > 0 || d2 > 0 || d3 > 0;
+    if (neg && pos) continue;
+    const z = (proj[a + 2] + proj[b + 2] + proj[c + 2]) / 3;
+    if (z < bestZ) { best = t; bestZ = z; }
+  }
+  return best;
+}
+function pickAt(x, y) {
+  const n = pickNode(x, y); if (n) return { type: 'n', el: n };
+  const b = pickBeam(x, y); if (b) return { type: 'b', el: b };
+  const t = pickTri(x, y); if (t) return { type: 't', el: t };
+  return null;
+}
+const raycaster = new THREE.Raycaster();
+function setRay(x, y) { raycaster.setFromCamera(new THREE.Vector2(x / vpW * 2 - 1, -(y / vpH) * 2 + 1), camera); }
+function hitMesh(x, y) {
+  if (!meshObject || !settings.mesh.visible) return null;
+  setRay(x, y);
+  return raycaster.intersectObject(meshObject, true)[0] || null;
+}
+// Plane facing the camera through the orbit centre: where free-space nodes land.
+function hitViewPlane(x, y) {
+  setRay(x, y);
+  const n = camera.getWorldDirection(new THREE.Vector3());
+  const plane = new THREE.Plane().setFromNormalAndCoplanarPoint(n, controls.target);
+  return raycaster.ray.intersectPlane(plane, new THREE.Vector3());
+}
+
+/* ============================== overlay ============================== */
+function drawOverlay() {
+  const dpr = window.devicePixelRatio || 1;
+  octx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  octx.clearRect(0, 0, vpW, vpH);
+  octx.font = '600 10px system-ui, sans-serif';
+  octx.textAlign = 'center'; octx.textBaseline = 'middle';
+  [['X', [0.68, 0, 0], '#e5534b'], ['Y', [0, 0.68, 0], '#57c47a'], ['Z', [0, 0, 0.68], '#4f8ff7']].forEach(([t, p, col]) => {
+    const v = toThree(p);
+    if (_v.copy(v).sub(camera.position).dot(camDir) <= camera.near) return;
+    const [sx, sy] = screenOf(v);
+    octx.fillStyle = col; octx.fillText(t, sx, sy);
+  });
+
+  const mode = settings.display.labels;
+  if (mode !== 'none' && model.nodes.length && settings.display.showNodes) {
+    ensureProj();
+    const off = settings.display.nodePx + 3;
+    octx.font = '11px system-ui, sans-serif';
+    octx.textAlign = 'left'; octx.lineJoin = 'round'; octx.lineWidth = 3;
+    octx.strokeStyle = 'rgba(12,14,18,.85)';
+    const label = (i, col) => {
+      if (Number.isNaN(proj[i * 3 + 2])) return;
+      const t = model.nodes[i].name, x = proj[i * 3] + off, y = proj[i * 3 + 1] - off;
+      octx.strokeText(t, x, y); octx.fillStyle = col; octx.fillText(t, x, y);
+    };
+    if (mode === 'all') for (let i = 0; i < model.nodes.length; i++) label(i, '#aeb6c4');
+    for (const n of selNodes()) label(nodeIndex.get(n.id), '#ffb26b');
+    for (const id of ui.pending) label(nodeIndex.get(id), '#ffe066');
+    if (hover && hover[0] === 'n') { const n = getByKey(hover); if (n) label(nodeIndex.get(n.id), '#ffffff'); }
+  }
+  if (hover && hover[0] === 'b') {
+    const b = getByKey(hover);
+    if (b) {
+      const mid = nodeP[nodeIndex.get(b.n[0])].clone().add(nodeP[nodeIndex.get(b.n[1])]).multiplyScalar(0.5);
+      const [sx, sy] = screenOf(mid), t = `${beamLen(b).toFixed(3)} m`;
+      octx.font = '11px system-ui, sans-serif'; octx.textAlign = 'center';
+      octx.lineWidth = 3; octx.strokeStyle = 'rgba(12,14,18,.9)';
+      octx.strokeText(t, sx, sy - 10); octx.fillStyle = '#fff'; octx.fillText(t, sx, sy - 10);
+    }
+  }
+  if (boxRect) {
+    const [x0, y0, x1, y1] = boxRect;
+    octx.fillStyle = 'rgba(255,138,31,.08)';
+    octx.fillRect(Math.min(x0, x1), Math.min(y0, y1), Math.abs(x1 - x0), Math.abs(y1 - y0));
+    octx.setLineDash([4, 3]); octx.strokeStyle = '#ff8a1f'; octx.lineWidth = 1;
+    octx.strokeRect(Math.min(x0, x1) + 0.5, Math.min(y0, y1) + 0.5, Math.abs(x1 - x0), Math.abs(y1 - y0));
+    octx.setLineDash([]);
+  }
+}
+
+/* ============================ change plumbing ============================ */
+function modelChanged() {
+  reindex();
+  rebuildViz();
+  updateGizmo();
+  scheduleUI('outliner', 'props', 'part', 'tools', 'status');
+}
+let scrollOutlinerToSel = false;
+function selectionChanged(scroll = false) {
+  if (sel.size && ui.rtab !== 'sel') switchRTab('sel');
+  if (scroll) scrollOutlinerToSel = true;
+  recolorAll();
+  updateGizmo();
+  scheduleUI('outliner', 'props', 'status');
+}
+function setSelection(keys, scroll = true) { sel.clear(); keys.forEach(k => sel.add(k)); selectionChanged(scroll); }
+function setHover(k) { if (hover === k) return; hover = k; recolorAll(); }
+function selectedElements() { return [...selNodes(), ...selBeams(), ...selTris()]; }
+
+/* ================================ naming ================================ */
+function autoName() {
+  const prefix = ui.namePrefix || 'n', digits = clamp(ui.nameDigits | 0 || 3, 1, 6);
+  const names = new Set(model.nodes.map(n => n.name));
+  const re = new RegExp('^' + prefix.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '(\\d+)$');
+  let max = 0;
+  for (const nm of names) { const m = re.exec(nm); if (m) max = Math.max(max, parseInt(m[1], 10)); }
+  let k = max + 1, name;
+  do { name = prefix + String(k).padStart(digits, '0'); k++; } while (names.has(name));
+  return name;
+}
+function takeNodeName() {
+  const custom = ui.nextName.trim();
+  ui.nextName = '';
+  if (custom) {
+    if (!model.nodes.some(n => n.name === custom)) return custom;
+    toast(`A node named "${custom}" already exists, so an automatic name was used`, 'warn');
+  }
+  return autoName();
+}
+const newGroups = () => (ui.activeGroup ? [ui.activeGroup] : []);
+
+/* ============================ create / delete ============================ */
+function addNode(pos) {
+  const node = { id: uid(), name: takeNodeName(), pos: pos.map(r6), groups: newGroups(), props: structuredClone(model.defaults.node) };
+  mutate('Add node ' + node.name, () => { model.nodes.push(node); });
+  setSelection(['n:' + node.id]);
+}
+function addBeam(a, b) {
+  if (a === b) return null;
+  if (beamPairs.has(pairKey(a, b))) { toast(`A beam between ${nodeName(a)} and ${nodeName(b)} already exists`, 'warn'); return null; }
+  const beam = { id: uid(), n: [a, b], groups: newGroups(), props: structuredClone(model.defaults.beam) };
+  mutate(`Add beam ${nodeName(a)}–${nodeName(b)}`, () => { model.beams.push(beam); });
+  return beam;
+}
+function addTri(ids) {
+  if (new Set(ids).size !== 3) return null;
+  if (triKeys.has(triKey(ids))) { toast('That triangle already exists', 'warn'); return null; }
+  const tri = { id: uid(), n: [...ids], groups: newGroups(), props: structuredClone(model.defaults.tri) };
+  mutate('Add triangle ' + ids.map(nodeName).join(' '), () => { model.tris.push(tri); });
+  return tri;
+}
+function deleteKeys(keys) {
+  const nIds = new Set(), bIds = new Set(), tIds = new Set();
+  for (const k of keys) { const id = +k.slice(2); (k[0] === 'n' ? nIds : k[0] === 'b' ? bIds : tIds).add(id); }
+  if (!nIds.size && !bIds.size && !tIds.size) return;
+  const before = [model.nodes.length, model.beams.length, model.tris.length];
+  mutate(`Delete ${keys.length} item${keys.length === 1 ? '' : 's'}`, () => {
+    model.nodes = model.nodes.filter(n => !nIds.has(n.id));
+    model.beams = model.beams.filter(b => !bIds.has(b.id) && !nIds.has(b.n[0]) && !nIds.has(b.n[1]));
+    model.tris = model.tris.filter(t => !tIds.has(t.id) && !t.n.some(id => nIds.has(id)));
+  });
+  const [dn, db, dt] = [before[0] - model.nodes.length, before[1] - model.beams.length, before[2] - model.tris.length];
+  toast(`Deleted ${[dn && dn + ' node' + (dn > 1 ? 's' : ''), db && db + ' beam' + (db > 1 ? 's' : ''), dt && dt + ' triangle' + (dt > 1 ? 's' : '')].filter(Boolean).join(', ')}`);
+  selectionChanged();
+}
+const deleteSelection = () => deleteKeys([...sel]);
+
+async function connectPairs() {
+  const ns = selNodes(), toAdd = [];
+  for (let i = 0; i < ns.length; i++) for (let j = i + 1; j < ns.length; j++) if (!beamPairs.has(pairKey(ns[i].id, ns[j].id))) toAdd.push([ns[i].id, ns[j].id]);
+  if (!toAdd.length) return toast('All selected nodes are already connected');
+  if (toAdd.length > 200 && !(await confirmModal('Create many beams?', `This creates ${toAdd.length} beams (one between every pair of the ${ns.length} selected nodes).`, 'Create beams'))) return;
+  mutate(`Add ${toAdd.length} beams`, () => {
+    for (const [a, b] of toAdd) model.beams.push({ id: uid(), n: [a, b], groups: newGroups(), props: structuredClone(model.defaults.beam) });
+  });
+  toast(`Added ${toAdd.length} beam${toAdd.length > 1 ? 's' : ''}`, 'ok');
+}
+function selectConnectedBeams() {
+  const ids = new Set(selNodes().map(n => n.id));
+  const touching = ids.size === 1;
+  const keys = model.beams.filter(b => touching ? ids.has(b.n[0]) || ids.has(b.n[1]) : ids.has(b.n[0]) && ids.has(b.n[1])).map(b => 'b:' + b.id);
+  if (!keys.length) return toast(touching ? 'This node has no beams' : 'No beams run between the selected nodes');
+  setSelection(keys);
+}
+function selectNodesOf(kind) {
+  const ids = new Set((kind === 'b' ? selBeams() : selTris()).flatMap(e => e.n));
+  setSelection([...ids].map(id => 'n:' + id));
+}
+function flipTris() {
+  const ts = selTris();
+  if (ts.length) mutate('Flip triangle winding', () => ts.forEach(t => { t.n = [t.n[0], t.n[2], t.n[1]]; }));
+}
+function selectAll() {
+  const t = ui.otab === 'beams' ? 'b' : ui.otab === 'tris' ? 't' : 'n';
+  const arr = t === 'b' ? model.beams : t === 't' ? model.tris : model.nodes;
+  setSelection(arr.map(e => t + ':' + e.id), false);
+}
+
+/* ================================ groups ================================ */
+function createGroup(name) {
+  name = cleanGroupName(name);
+  if (!name) return false;
+  if (model.groups.includes(name)) { toast(`Group "${name}" already exists`, 'warn'); return false; }
+  mutate('New group ' + name, () => { model.groups.push(name); });
+  return true;
+}
+function assignToGroup(g, els = selectedElements()) {
+  if (!els.length) return toast('Select nodes, beams or triangles first');
+  mutate(`Add to group ${g}`, () => els.forEach(e => { if (!e.groups.includes(g)) e.groups.push(g); }));
+}
+function removeFromGroup(g, els = selectedElements()) {
+  const hit = els.filter(e => e.groups.includes(g));
+  if (!hit.length) return toast(`Nothing selected is in "${g}"`);
+  mutate(`Remove from group ${g}`, () => hit.forEach(e => { e.groups = e.groups.filter(x => x !== g); }));
+}
+async function renameGroup(g) {
+  const nn = cleanGroupName((await promptModal('Rename group', g)) ?? '');
+  if (!nn || nn === g) return;
+  if (model.groups.includes(nn)) return toast(`Group "${nn}" already exists`, 'warn');
+  mutate(`Rename group ${g}`, () => {
+    model.groups = model.groups.map(x => (x === g ? nn : x));
+    for (const arr of [model.nodes, model.beams, model.tris]) for (const e of arr) e.groups = e.groups.map(x => (x === g ? nn : x));
+  });
+  if (ui.activeGroup === g) { ui.activeGroup = nn; scheduleUI('tools'); }
+}
+function deleteGroup(g) {
+  mutate(`Delete group ${g}`, () => {
+    model.groups = model.groups.filter(x => x !== g);
+    for (const arr of [model.nodes, model.beams, model.tris]) for (const e of arr) e.groups = e.groups.filter(x => x !== g);
+  });
+  toast(`Deleted group "${g}" (its members were kept). Ctrl+Z to undo.`);
+}
+function selectGroup(g, additive) {
+  if (!additive) sel.clear();
+  for (const [t, arr] of [['n', model.nodes], ['b', model.beams], ['t', model.tris]]) for (const e of arr) if (e.groups.includes(g)) sel.add(t + ':' + e.id);
+  selectionChanged();
+}
+
+/* ================================ camera ================================ */
+function frameBox(box) {
+  if (box.isEmpty()) return;
+  const c = box.getCenter(new THREE.Vector3());
+  const r = Math.max(box.getSize(new THREE.Vector3()).length() / 2, 0.25);
+  const dir = camera.position.clone().sub(controls.target).normalize();
+  if (!Number.isFinite(dir.x) || dir.lengthSq() < 0.5) dir.set(1, 0.6, 1).normalize();
+  const dist = r / Math.sin(THREE.MathUtils.degToRad(camera.fov / 2)) * 1.05;
+  controls.target.copy(c);
+  camera.position.copy(c).addScaledVector(dir, dist);
+  camera.far = Math.max(1000, dist * 20);
+  camera.updateProjectionMatrix();
+  controls.update();
+}
+function nodesBox(nodes) { const b = new THREE.Box3(); for (const n of nodes) b.expandByPoint(toThree(n.pos)); return b; }
+function frameAll() {
+  const box = nodesBox(model.nodes);
+  if (meshObject && settings.mesh.visible) box.union(new THREE.Box3().setFromObject(meshRoot));
+  if (box.isEmpty()) box.set(new THREE.Vector3(-1, 0, -1), new THREE.Vector3(1, 1, 1));
+  frameBox(box);
+}
+function frameSelection() {
+  const ids = new Set([...selNodes().map(n => n.id), ...selBeams().flatMap(b => b.n), ...selTris().flatMap(t => t.n)]);
+  if (!ids.size) return frameAll();
+  frameBox(nodesBox([...ids].map(id => nodeById.get(id))));
+}
+function setView(name) {
+  const dirs = { front: [0, -1, 0], rear: [0, 1, 0], left: [1, 0, 0], right: [-1, 0, 0], iso: [1.1, -1.35, 0.85] };
+  // Top view: tiny offset keeps OrbitControls stable and puts the vehicle front (−Y) at the top of the screen.
+  const d = name === 'top' ? new THREE.Vector3(0, 1, -1e-3).normalize() : toThree(dirs[name]).normalize();
+  const dist = camera.position.distanceTo(controls.target);
+  camera.position.copy(controls.target).addScaledVector(d, dist);
+  controls.update();
+}
+
+/* ============================== move gizmo ============================== */
+function updateGizmo() {
+  const ns = selNodes();
+  const want = ui.mode === 'select' && settings.display.gizmo && sel.size === 1 && ns.length === 1;
+  if (want) {
+    gizmoNodeId = ns[0].id;
+    if (!gizmoBefore) gizmoProxy.position.copy(toThree(ns[0].pos));
+    if (tctl.object !== gizmoProxy) tctl.attach(gizmoProxy);
+  } else if (tctl.object) {
+    tctl.detach();
+    gizmoNodeId = null;
+  }
+  requestRender();
+}
+tctl.addEventListener('change', requestRender);
+tctl.addEventListener('dragging-changed', e => { controls.enabled = !e.value; });
+tctl.addEventListener('mouseDown', () => { gizmoPressed = true; gizmoBefore = snap(); });
+tctl.addEventListener('objectChange', () => {
+  const n = nodeById.get(gizmoNodeId);
+  if (!n) return;
+  n.pos = fromThree(gizmoProxy.position);
+  rebuildViz();
+  scheduleUI('props');
+});
+tctl.addEventListener('mouseUp', () => {
+  if (gizmoBefore && gizmoBefore !== snap()) pushUndo('Move node ' + nodeName(gizmoNodeId), gizmoBefore);
+  gizmoBefore = null;
+  modelChanged();
+});
+
+/* ================================= mesh ================================= */
+function clearMeshObject() {
+  if (!meshObject) return;
+  meshAxis.remove(meshObject);
+  meshObject.traverse(o => {
+    if (!o.isMesh) return;
+    o.geometry?.dispose();
+    for (const key of ['origMat', 'origClone']) {
+      const m = o.userData[key];
+      for (const mat of Array.isArray(m) ? m : m ? [m] : []) {
+        for (const v of Object.values(mat)) if (v && v.isTexture) v.dispose();
+        mat.dispose();
+      }
+    }
+  });
+  meshObject = null; meshInfo = null;
+}
+function applyMeshMaterials() {
+  if (!meshObject) return;
+  const m = settings.mesh, transparent = m.opacity < 0.999;
+  clayMat.opacity = m.opacity; clayMat.transparent = transparent; clayMat.wireframe = m.wireframe; clayMat.needsUpdate = true;
+  meshObject.traverse(o => {
+    if (!o.isMesh) return;
+    if (!m.original) { o.material = clayMat; return; }
+    if (!o.userData.origClone) {
+      const src = o.userData.origMat;
+      o.userData.origClone = Array.isArray(src) ? src.map(x => x.clone()) : src.clone();
+    }
+    const mats = Array.isArray(o.userData.origClone) ? o.userData.origClone : [o.userData.origClone];
+    for (const x of mats) { x.transparent = transparent; x.opacity = m.opacity; x.wireframe = m.wireframe; x.side = THREE.DoubleSide; x.needsUpdate = true; }
+    o.material = o.userData.origClone;
+  });
+}
+function applyMeshSettings() {
+  const m = settings.mesh;
+  meshAxis.rotation.set(m.upAxis === 'z' ? -Math.PI / 2 : 0, 0, 0);
+  meshRoot.rotation.set(0, THREE.MathUtils.degToRad(m.yaw), 0);
+  meshRoot.scale.setScalar(m.scale > 0 ? m.scale : 1);
+  meshRoot.position.copy(toThree(m.offset));
+  meshRoot.visible = m.visible;
+  meshRoot.updateMatrixWorld(true);
+  applyMeshMaterials();
+  requestRender();
+}
+function meshSizeText() {
+  if (!meshObject) return '';
+  const s = new THREE.Box3().setFromObject(meshRoot).getSize(new THREE.Vector3());
+  return `${s.x.toFixed(2)} × ${s.z.toFixed(2)} × ${s.y.toFixed(2)} m (X × Y × Z)`;
+}
+async function loadMeshFiles(files, { fromProject = false } = {}) {
+  const main = files.find(f => /\.(glb|gltf)$/i.test(f.name)) || files.find(f => /\.obj$/i.test(f.name));
+  if (!main) { toast('Choose an .obj, .glb or .gltf file (plus its .bin/textures for .gltf)', 'err'); return false; }
+  let obj;
+  const urls = [];
+  try {
+    if (/\.obj$/i.test(main.name)) {
+      obj = new OBJLoader().parse(new TextDecoder().decode(main.buffer));
+    } else {
+      const byName = new Map(files.map(f => { const u = URL.createObjectURL(new Blob([f.buffer])); urls.push(u); return [f.name, u]; }));
+      const manager = new THREE.LoadingManager();
+      manager.setURLModifier(url => {
+        if (/^(data|blob):/.test(url)) return url;
+        const base = decodeURIComponent(url.split(/[\\/]/).pop().split('?')[0]);
+        return byName.get(base) ?? url;
+      });
+      const gltf = await new Promise((res, rej) => new GLTFLoader(manager).parse(main.buffer, '', res, rej));
+      obj = gltf.scene;
+    }
+  } catch (e) {
+    toast(`Could not load ${main.name}: ${e?.message || e}`, 'err', 6000);
+    return false;
+  } finally {
+    setTimeout(() => urls.forEach(u => URL.revokeObjectURL(u)), 30000);
+  }
+  clearMeshObject();
+  meshObject = obj;
+  meshAxis.add(obj);
+  let tris = 0;
+  obj.traverse(o => {
+    if (!o.isMesh) return;
+    o.userData.origMat = o.material;
+    const g = o.geometry;
+    if (!g.attributes.normal) g.computeVertexNormals();
+    tris += (g.index ? g.index.count : g.attributes.position.count) / 3;
+  });
+  meshInfo = { name: main.name, tris };
+  meshSource = { main: main.name, files: /\.obj$/i.test(main.name) ? [main] : files };
+  applyMeshSettings();
+  if (!fromProject) {
+    frameAll();
+    toast(`Loaded ${main.name} (${fmtInt(tris)} triangles)`, 'ok');
+  }
+  scheduleUI('scene', 'status');
+  return true;
+}
+async function loadMeshFromFileList(fileList) {
+  const files = await Promise.all(fileList.map(async f => ({ name: f.name, buffer: await f.arrayBuffer() })));
+  if (await loadMeshFiles(files)) switchRTab('scene');
+}
+function removeMesh() {
+  clearMeshObject();
+  meshSource = null;
+  requestRender();
+  scheduleUI('scene', 'status');
+}
+
+/* ====================== jbeam (relaxed JSON) parser ======================
+   Accepts // and block comments, trailing or missing commas, unquoted words.
+   Comments of the form "// group: a, b" inside arrays become GroupComment markers,
+   which is how beam/triangle groups survive an export → import round trip. */
+const GROUP_COMMENT_RE = /^[\s\-=*#]*group\s*:\s*(.*?)[\s\-=*#]*$/i;
+function parseRelaxedJSON(src) {
+  let i = 0, comments = [];
+  const n = src.length;
+  const NUM = /[-+]?(?:\d+\.?\d*|\.\d+)(?:[eE][-+]?\d+)?/y;
+  const WORD = /[A-Za-z_$][\w$.\-]*/y;
+  const fail = msg => {
+    const before = src.slice(0, i);
+    throw new Error(`${msg} (line ${before.split('\n').length}, column ${i - before.lastIndexOf('\n')})`);
+  };
+  function ws() {
+    while (i < n) {
+      const c = src.charCodeAt(i);
+      if (c === 32 || c === 9 || c === 10 || c === 13 || c === 44 || c === 0xfeff || c === 0xa0) { i++; continue; }
+      if (c === 47) {
+        const d = src.charCodeAt(i + 1);
+        if (d === 47) { let e = src.indexOf('\n', i); if (e < 0) e = n; comments.push(src.slice(i + 2, e)); i = e; continue; }
+        if (d === 42) { const e = src.indexOf('*/', i + 2); if (e < 0) fail('Unterminated comment'); comments.push(src.slice(i + 2, e)); i = e + 2; continue; }
+      }
+      break;
+    }
+  }
+  function value() {
+    ws();
+    if (i >= n) fail('Unexpected end of file');
+    const c = src[i];
+    if (c === '{') return object();
+    if (c === '[') return array();
+    if (c === '"') return string();
+    NUM.lastIndex = i;
+    let m = NUM.exec(src);
+    if (m) { i += m[0].length; return parseFloat(m[0]); }
+    WORD.lastIndex = i;
+    m = WORD.exec(src);
+    if (m) { i += m[0].length; const w = m[0]; return w === 'true' ? true : w === 'false' ? false : w === 'null' ? null : w; }
+    fail(`Unexpected character "${c}"`);
+  }
+  function array() {
+    i++;
+    const out = [];
+    for (;;) {
+      comments = [];
+      ws();
+      for (const t of comments) {
+        const m = GROUP_COMMENT_RE.exec(t.trim());
+        if (m) out.push(new GroupComment(m[1].split(',').map(s => s.trim()).filter(s => s && s !== '(none)')));
+      }
+      comments = [];
+      if (i >= n) fail('Unterminated array');
+      if (src[i] === ']') { i++; return out; }
+      out.push(value());
+    }
+  }
+  function object() {
+    i++;
+    const out = {};
+    for (;;) {
+      ws();
+      if (i >= n) fail('Unterminated object');
+      if (src[i] === '}') { i++; return out; }
+      let key;
+      if (src[i] === '"') key = string();
+      else {
+        WORD.lastIndex = i;
+        const m = WORD.exec(src);
+        if (!m) fail(`Expected a key but found "${src[i]}"`);
+        key = m[0]; i += key.length;
+      }
+      ws();
+      if (src[i] !== ':') fail(`Expected ":" after "${key}"`);
+      i++;
+      const v = value();
+      if (key !== '__proto__') out[key] = v;
+    }
+  }
+  function string() {
+    i++;
+    let out = '', start = i;
+    for (;;) {
+      if (i >= n) fail('Unterminated string');
+      const c = src.charCodeAt(i);
+      if (c === 34) { out += src.slice(start, i); i++; return out; }
+      if (c === 92) {
+        out += src.slice(start, i);
+        const e = src[i + 1];
+        i += 2;
+        if (e === 'u') { out += String.fromCharCode(parseInt(src.slice(i, i + 4), 16) || 0); i += 4; }
+        else out += { n: '\n', t: '\t', r: '\r', b: '\b', f: '\f' }[e] ?? e ?? '';
+        start = i;
+        continue;
+      }
+      i++;
+    }
+  }
+  return value();
+}
+function stripMarkers(v) {
+  if (Array.isArray(v)) return v.filter(x => !(x instanceof GroupComment)).map(stripMarkers);
+  if (isObj(v)) { const o = {}; for (const k of Object.keys(v)) o[k] = stripMarkers(v[k]); return o; }
+  return v;
+}
+// Walks a jbeam table section: first array = header, objects = sticky modifiers, trailing object in a row = row-only options.
+function readRows(rows, cb) {
+  if (!Array.isArray(rows)) return;
+  let header = null, commentGroups = [];
+  const state = {};
+  for (const row of rows) {
+    if (row instanceof GroupComment) { commentGroups = row.groups; continue; }
+    if (Array.isArray(row)) {
+      const r = row.filter(x => !(x instanceof GroupComment));
+      if (!header) { header = r.map(h => String(h).replace(/:$/, '')); continue; }
+      const inline = r.length && isObj(r[r.length - 1]) ? r[r.length - 1] : null;
+      const cols = inline ? r.length - 1 : r.length, vals = {};
+      header.forEach((h, k) => { if (k < cols) vals[h] = r[k]; });
+      cb(vals, inline ? { ...state, ...stripMarkers(inline) } : { ...state }, commentGroups);
+    } else if (isObj(row)) Object.assign(state, stripMarkers(row));
+  }
+}
+const countRows = arr => (Array.isArray(arr) ? Math.max(0, arr.filter(Array.isArray).length - 1) : 0);
+
+async function importJBeamText(text, fileName) {
+  let data;
+  try { data = parseRelaxedJSON(text); } catch (e) { toast(`Could not read ${fileName}: ${e.message}`, 'err', 7000); return; }
+  if (!isObj(data)) { toast(`${fileName} is not a jbeam file (expected an object of parts)`, 'err'); return; }
+  const parts = Object.entries(data).filter(([, p]) => isObj(p) && ['nodes', 'beams', 'triangles'].some(s => Array.isArray(p[s])));
+  if (!parts.length) { toast(`No part with nodes, beams or triangles found in ${fileName}`, 'err'); return; }
+  const hasScene = model.nodes.length > 0;
+  if (parts.length === 1 && !hasScene) return doImport(parts, 'replace', fileName);
+  const desc = p => `${countRows(p.nodes)} nodes, ${countRows(p.beams)} beams, ${countRows(p.triangles)} triangles`;
+  const body = document.createElement('div');
+  body.innerHTML = parts.length > 1
+    ? `<p>${esc(fileName)} contains ${parts.length} parts.</p><div class="row"><label>Part</label><select id="imp-part">${parts.map(([k, p], idx) => `<option value="${idx}">${esc(k)} (${countRows(p.nodes)} nodes)</option>`).join('')}<option value="all">All parts, merged</option></select></div>`
+    : `<p><b>${esc(parts[0][0])}</b>: ${desc(parts[0][1])}.</p>`;
+  if (hasScene) body.insertAdjacentHTML('beforeend', '<p class="muted">Replace discards the current nodes, beams and triangles (Ctrl+Z restores them). Merge adds to them and reuses existing nodes with the same name.</p>');
+  const which = b => b.querySelector('#imp-part')?.value ?? '0';
+  const buttons = [{ label: 'Cancel', value: null }];
+  if (hasScene) buttons.push({ label: 'Merge', value: b => ({ which: which(b), mode: 'merge' }) });
+  buttons.push({ label: hasScene ? 'Replace' : 'Import', kind: 'primary', value: b => ({ which: which(b), mode: 'replace' }) });
+  const res = await modal({ title: 'Import .jbeam', body, buttons });
+  if (!res) return;
+  doImport(res.which === 'all' ? parts : [parts[+res.which]], res.mode, fileName);
+}
+
+function doImport(parts, mode, fileName) {
+  const merge = mode === 'merge';
+  const nameMap = new Map(merge ? model.nodes.map(n => [n.name, n.id]) : []);
+  const nodes = [], beams = [], tris = [], groups = new Set(merge ? model.groups : []);
+  let reused = 0, skipped = 0, badPos = 0;
+  for (const [, part] of parts) {
+    readRows(part.nodes, (v, props) => {
+      const name = v.id == null ? '' : String(v.id);
+      if (!name) return;
+      if (nameMap.has(name)) { reused++; return; }
+      let pos = [v.posX, v.posY, v.posZ].map(Number);
+      if (pos.some(x => !Number.isFinite(x))) { badPos++; pos = pos.map(x => (Number.isFinite(x) ? x : 0)); }
+      const off = props.nodeOffset;
+      if (isObj(off)) pos = [pos[0] + (+off.x || 0), pos[1] + (+off.y || 0), pos[2] + (+off.z || 0)];
+      const g = normGroups(props.group);
+      g.forEach(x => groups.add(x));
+      const p = { ...props };
+      delete p.group; delete p.nodeOffset;
+      const node = { id: uid(), name, pos: pos.map(r6), groups: g, props: structuredClone(p) };
+      nodes.push(node);
+      nameMap.set(name, node.id);
+    });
+  }
+  const link = (rows, cols, target) => readRows(rows, (v, props, cg) => {
+    const ids = cols.map(c => nameMap.get(String(v[c])));
+    if (ids.some(x => !x) || new Set(ids).size !== cols.length) { skipped++; return; }
+    cg.forEach(x => groups.add(x));
+    target.push({ id: uid(), n: ids, groups: [...cg], props: structuredClone(props) });
+  });
+  for (const [, part] of parts) {
+    link(part.beams, ['id1', 'id2'], beams);
+    link(part.triangles, ['id1', 'id2', 'id3'], tris);
+  }
+  mutate(merge ? 'Merge ' + fileName : 'Import ' + fileName, () => {
+    if (merge) {
+      model.nodes.push(...nodes); model.beams.push(...beams); model.tris.push(...tris);
+      model.groups = [...groups];
+      return;
+    }
+    const [pname, part] = parts[0];
+    const { name: iname, authors, ...infoRest } = isObj(part.information) ? part.information : {};
+    model.part = { name: pname, slotType: typeof part.slotType === 'string' ? part.slotType : 'main', infoName: iname != null ? String(iname) : '', authors: authors != null ? String(authors) : '', infoExtra: stripMarkers(infoRest) };
+    model.nodes = nodes; model.beams = beams; model.tris = tris; model.groups = [...groups];
+    const extra = {};
+    if (parts.length === 1) for (const [k, v] of Object.entries(part)) if (!['nodes', 'beams', 'triangles', 'information', 'slotType'].includes(k)) extra[k] = stripMarkers(v);
+    model.extraSections = Object.keys(extra).length ? extra : null;
+  });
+  sel.clear();
+  selectionChanged();
+  frameAll();
+  const notes = [];
+  if (reused) notes.push(`${reused} node${reused > 1 ? 's' : ''} reused by name`);
+  if (skipped) notes.push(`${skipped} beam/triangle row${skipped > 1 ? 's' : ''} skipped (unknown nodes)`);
+  if (badPos) notes.push(`${badPos} node position${badPos > 1 ? 's' : ''} were not numbers`);
+  toast(`Imported ${nodes.length} nodes, ${beams.length} beams, ${tris.length} triangles${notes.length ? ' — ' + notes.join(', ') : ''}`, notes.length ? 'warn' : 'ok', notes.length ? 7000 : 3500);
+}
+
+/* ================================ export ================================ */
+function inlineJSON(v) {
+  if (Array.isArray(v)) return '[' + v.map(inlineJSON).join(', ') + ']';
+  if (isObj(v)) return '{' + Object.keys(v).map(k => J(k) + ': ' + inlineJSON(v[k])).join(', ') + '}';
+  return J(v) ?? 'null';
+}
+function pretty(v) {
+  const flat = inlineJSON(v);
+  if (flat.length <= 100 || !(Array.isArray(v) || isObj(v))) return [flat];
+  const I = '    ';
+  if (Array.isArray(v)) {
+    const lines = ['['];
+    v.forEach((e, idx) => { const sub = pretty(e); if (idx < v.length - 1) sub[sub.length - 1] += ','; lines.push(...sub.map(l => I + l)); });
+    lines.push(']');
+    return lines;
+  }
+  const keys = Object.keys(v), lines = ['{'];
+  keys.forEach((k, idx) => { const sub = pretty(v[k]); sub[0] = J(k) + ': ' + sub[0]; if (idx < keys.length - 1) sub[sub.length - 1] += ','; lines.push(...sub.map(l => I + l)); });
+  lines.push('}');
+  return lines;
+}
+function ordered(props, order) {
+  const o = {};
+  for (const k of order) if (props[k] !== undefined) o[k] = props[k];
+  for (const k of Object.keys(props)) if (!(k in o) && props[k] !== undefined) o[k] = props[k];
+  return o;
+}
+function sortByGroup(arr) {
+  const gi = e => (e.groups.length ? (model.groups.indexOf(e.groups[0]) + 1 || 1e9) : 0);
+  return arr.map((e, i) => [e, i]).sort((a, b) => gi(a[0]) - gi(b[0]) || J(a[0].groups).localeCompare(J(b[0].groups)) || a[1] - b[1]).map(x => x[0]);
+}
+/* jbeam modifier rows are sticky: they apply to every following row and can't be "unset".
+   A key is therefore written as a modifier only from the point after which every remaining
+   element defines it; before that point it goes inline on the row. This keeps the output
+   compact and exactly reproduces each element's properties. */
+function emitSticky(list, seed = {}) {
+  const n = list.length, suffix = new Map(), keys = new Set();
+  list.forEach(p => Object.keys(p).forEach(k => keys.add(k)));
+  for (const k of keys) { let s = n; for (let i = n - 1; i >= 0 && list[i][k] !== undefined; i--) s = i; suffix.set(k, s); }
+  const state = { ...seed }, rows = [];
+  list.forEach((p, i) => {
+    const mod = {}, inline = {};
+    for (const [k, v] of Object.entries(p)) {
+      if (v === undefined) continue;
+      if (i >= suffix.get(k)) { if (!(k in state) || !same(state[k], v)) { mod[k] = v; state[k] = v; } }
+      else inline[k] = v;
+    }
+    rows.push({ mod, inline });
+  });
+  return { rows, state };
+}
+const objLine = o => inlineJSON(o);
+const hasKeys = o => Object.keys(o).length > 0;
+
+function nodeEntries(dec) {
+  const nodes = sortByGroup(model.nodes);
+  const { rows, state } = emitSticky(nodes.map(n => ({ group: n.groups.length === 0 ? '' : n.groups.length === 1 ? n.groups[0] : [...n.groups], ...ordered(n.props, NODE_ORDER) })), { group: '' });
+  const eps = 0.5 * 10 ** -dec;
+  const nums = nodes.map(n => n.pos.map(v => (Math.abs(v) < eps ? 0 : v).toFixed(dec)));
+  const w = Math.max(...nums.flat().map(s => s.length));
+  const nameW = Math.max(...nodes.map(n => J(n.name).length));
+  const entries = [{ t: '["id", "posX", "posY", "posZ"]' }];
+  nodes.forEach((n, i) => {
+    const { mod, inline } = rows[i];
+    if ('group' in mod) { entries.push({ t: objLine({ group: mod.group }) }); delete mod.group; }
+    if (hasKeys(mod)) entries.push({ t: objLine(mod) });
+    entries.push({ t: `[${(J(n.name) + ',').padEnd(nameW + 1)} ${nums[i].map(s => s.padStart(w)).join(', ')}${hasKeys(inline) ? ', ' + objLine(inline) : ''}]` });
+  });
+  if (state.group !== '') entries.push({ t: objLine({ group: '' }) });
+  return entries;
+}
+function linkEntries(els, header, order, comments) {
+  const sorted = sortByGroup(els);
+  const { rows } = emitSticky(sorted.map(e => ordered(e.props, order)));
+  const names = sorted.map(e => e.n.map(id => J(nodeName(id))));
+  const colW = header.map((_, c) => Math.max(...names.map(ns => ns[c].length)));
+  const withGroups = comments && sorted.some(e => e.groups.length);
+  const entries = [{ t: '[' + header.map(J).join(', ') + ']' }];
+  let lastLabel = null;
+  sorted.forEach((e, i) => {
+    if (withGroups) {
+      const label = e.groups.join(', ');
+      if (label !== lastLabel) { entries.push({ t: `// group: ${label || '(none)'}`, c: true }); lastLabel = label; }
+    }
+    const { mod, inline } = rows[i];
+    if (hasKeys(mod)) entries.push({ t: objLine(mod) });
+    const cells = names[i].map((s, c) => (c < names[i].length - 1 ? (s + ',').padEnd(colW[c] + 1) : s));
+    entries.push({ t: `[${cells.join(' ')}${hasKeys(inline) ? ', ' + objLine(inline) : ''}]` });
+  });
+  return entries;
+}
+function sectionLines(key, entries) {
+  let lastData = -1;
+  entries.forEach((e, i) => { if (!e.c) lastData = i; });
+  return [`${J(key)}: [`, ...entries.map((e, i) => '    ' + e.t + (!e.c && i < lastData ? ',' : '')), ']'];
+}
+function exportJBeam() {
+  const E = settings.export, P = model.part, I = '    ';
+  const dec = clamp(Math.round(E.decimals) || 4, 1, 8);
+  const partKey = P.name.trim() || 'my_part';
+  const blocks = [];
+  if (E.info) {
+    const info = { authors: P.authors, name: P.infoName || partKey, ...P.infoExtra };
+    const keys = Object.keys(info);
+    blocks.push(['"information": {', ...keys.map((k, idx) => `${I}${J(k)}: ${inlineJSON(info[k])}${idx < keys.length - 1 ? ',' : ''}`), '}']);
+  }
+  blocks.push([`"slotType": ${J(P.slotType || 'main')}`]);
+  if (model.nodes.length) blocks.push(sectionLines('nodes', nodeEntries(dec)));
+  if (model.beams.length) blocks.push(sectionLines('beams', linkEntries(model.beams, ['id1:', 'id2:'], BEAM_ORDER, E.comments)));
+  if (model.tris.length) blocks.push(sectionLines('triangles', linkEntries(model.tris, ['id1:', 'id2:', 'id3:'], TRI_ORDER, E.comments)));
+  if (E.keepExtra && model.extraSections) for (const [k, v] of Object.entries(model.extraSections)) { const l = pretty(v); l[0] = J(k) + ': ' + l[0]; blocks.push(l); }
+  const out = ['{', `${I}${J(partKey)}: {`];
+  blocks.forEach((b, bi) => b.forEach((l, li) => out.push(I + I + l + (li === b.length - 1 && bi < blocks.length - 1 ? ',' : ''))));
+  out.push(`${I}}`, '}');
+  return out.join('\n') + '\n';
+}
+function exportWarnings() {
+  const w = [], list = arr => arr.slice(0, 8).map(n => n.name).join(', ') + (arr.length > 8 ? ', …' : '');
+  if (!model.nodes.length) w.push('The part has no nodes.');
+  const deg = new Map();
+  for (const b of model.beams) for (const id of b.n) deg.set(id, (deg.get(id) || 0) + 1);
+  const lonely = model.nodes.filter(n => !deg.get(n.id));
+  if (lonely.length && model.nodes.length) w.push(`${lonely.length} node${lonely.length > 1 ? 's have' : ' has'} no beams: ${list(lonely)}`);
+  const zero = model.beams.filter(b => beamLen(b) < 1e-4);
+  if (zero.length) w.push(`${zero.length} beam${zero.length > 1 ? 's have' : ' has'} (almost) zero length`);
+  const odd = model.nodes.filter(n => !/^[A-Za-z0-9_]+$/.test(n.name));
+  if (odd.length) w.push(`${odd.length} node name${odd.length > 1 ? 's contain' : ' contains'} spaces or symbols: ${list(odd)}`);
+  if (/\s/.test(model.part.name)) w.push('The part name contains spaces.');
+  return w;
+}
+function showExport() {
+  let text;
+  try { text = exportJBeam(); } catch (e) { toast('Export failed: ' + e.message, 'err'); return; }
+  const fname = safeFile(model.part.name) + '.jbeam';
+  const warns = exportWarnings();
+  const body = document.createElement('div');
+  body.innerHTML = `${warns.length ? `<div class="warns">${warns.map(x => `<div>${esc(x)}</div>`).join('')}</div>` : ''}<div class="exp-bar"><span class="muted">${esc(fname)} · ${fmtInt(text.split('\n').length)} lines</span><button type="button" id="exp-copy">Copy to clipboard</button></div><textarea class="code" readonly spellcheck="false"></textarea>`;
+  const ta = body.querySelector('textarea');
+  ta.value = text;
+  body.querySelector('#exp-copy').onclick = async () => {
+    try { await navigator.clipboard.writeText(text); } catch { ta.select(); document.execCommand('copy'); }
+    toast('Copied to clipboard', 'ok');
+  };
+  modal({ title: 'Export .jbeam', body, wide: true, buttons: [{ label: 'Close', value: null }, { label: 'Download ' + fname, value: 'dl', kind: 'primary' }] })
+    .then(v => { if (v === 'dl') download(text, fname, 'application/json'); });
+}
+
+/* ================================ project ================================ */
+function download(data, filename, type) {
+  const url = URL.createObjectURL(data instanceof Blob ? data : new Blob([data], { type }));
+  const a = document.createElement('a');
+  a.href = url; a.download = filename;
+  document.body.append(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 2000);
+}
+const bufToB64 = buf => new Promise((res, rej) => {
+  const r = new FileReader();
+  r.onload = () => res(String(r.result).split(',')[1] || '');
+  r.onerror = () => rej(r.error);
+  r.readAsDataURL(new Blob([buf]));
+});
+function b64ToBuf(b64) { const bin = atob(b64), u = new Uint8Array(bin.length); for (let i = 0; i < bin.length; i++) u[i] = bin.charCodeAt(i); return u.buffer; }
+
+async function saveProject() {
+  const proj = {
+    format: 'jbeam-builder-project', version: 1, savedAt: new Date().toISOString(),
+    model, settings,
+    tool: { namePrefix: ui.namePrefix, nameDigits: ui.nameDigits, activeGroup: ui.activeGroup },
+    camera: { position: camera.position.toArray(), target: controls.target.toArray() },
+    mesh: null,
+  };
+  if (meshSource) {
+    proj.mesh = { main: meshSource.main };
+    if (settings.embedMesh) proj.mesh.files = await Promise.all(meshSource.files.map(async f => ({ name: f.name, data: await bufToB64(f.buffer) })));
+  }
+  download(JSON.stringify(proj), safeFile(model.part.name) + '.project.json', 'application/json');
+  dirty = false;
+  toast(meshSource && !settings.embedMesh ? 'Project saved (mesh not embedded — re-import it after opening)' : 'Project saved', 'ok');
+}
+// Returns false (without side effects) when the text is not a JBeam Builder project.
+async function loadProjectText(text, fileName, { quiet = false } = {}) {
+  let p;
+  try { p = JSON.parse(text); } catch { p = null; }
+  if (!isObj(p) || p.format !== 'jbeam-builder-project') {
+    if (!quiet) toast(`${fileName} is not a JBeam Builder project`, 'err');
+    return false;
+  }
+  mutate('Open project ' + fileName, () => { model = normalizeModel(p.model); });
+  const s = p.settings;
+  if (isObj(s)) {
+    for (const k of ['export', 'display', 'mesh']) if (isObj(s[k])) Object.assign(settings[k], s[k]);
+    if (typeof s.embedMesh === 'boolean') settings.embedMesh = s.embedMesh;
+    const off = settings.mesh.offset;
+    settings.mesh.offset = [0, 1, 2].map(i => (Array.isArray(off) && Number.isFinite(+off[i]) ? +off[i] : 0));
+  }
+  if (isObj(p.tool)) {
+    if (typeof p.tool.namePrefix === 'string') ui.namePrefix = p.tool.namePrefix;
+    if (Number.isInteger(p.tool.nameDigits)) ui.nameDigits = p.tool.nameDigits;
+    ui.activeGroup = model.groups.includes(p.tool.activeGroup) ? p.tool.activeGroup : '';
+  }
+  sel.clear(); ui.pending = [];
+  if (isObj(p.mesh)) {
+    removeMesh();
+    if (Array.isArray(p.mesh.files) && p.mesh.files.length) {
+      try { await loadMeshFiles(p.mesh.files.map(f => ({ name: String(f.name), buffer: b64ToBuf(String(f.data)) })), { fromProject: true }); }
+      catch (e) { toast('Could not restore the embedded mesh: ' + e.message, 'err'); }
+    } else if (p.mesh.main) toast(`This project used the mesh "${p.mesh.main}". Import it again to see it.`, 'warn', 6000);
+  }
+  applyMeshSettings();
+  applyDisplay();
+  const cam = p.camera;
+  if (isObj(cam) && Array.isArray(cam.position) && Array.isArray(cam.target)) {
+    camera.position.fromArray(cam.position.map(Number));
+    controls.target.fromArray(cam.target.map(Number));
+    controls.update();
+  } else frameAll();
+  dirty = false;
+  selectionChanged();
+  scheduleUI('scene', 'part', 'tools');
+  toast(`Opened ${fileName}`, 'ok');
+  return true;
+}
+async function newPart() {
+  if (!model.nodes.length && !model.beams.length && !model.tris.length && !model.groups.length) return toast('The part is already empty');
+  mutate('New part', () => { const d = model.defaults; model = emptyModel(); model.defaults = d; });
+  sel.clear(); ui.pending = [];
+  selectionChanged();
+  toast('Started a new part. Ctrl+Z brings the old one back.');
+}
+async function handleFiles(files) {
+  const meshFiles = files.filter(f => /\.(obj|glb|gltf|bin|png|jpe?g|webp)$/i.test(f.name));
+  if (meshFiles.some(f => /\.(obj|glb|gltf)$/i.test(f.name))) await loadMeshFromFileList(meshFiles);
+  for (const f of files.filter(f => /\.json$/i.test(f.name))) {
+    const t = await f.text();
+    if (!(await loadProjectText(t, f.name, { quiet: true }))) await importJBeamText(t, f.name);
+  }
+  for (const f of files.filter(f => /\.jbeam$/i.test(f.name))) await importJBeamText(await f.text(), f.name);
+}
+
+/* ============================ toasts & modals ============================ */
+function toast(msg, kind = '', ms = 2800) {
+  const el = document.createElement('div');
+  el.className = 'toast ' + kind;
+  el.textContent = msg;
+  const box = $('#toasts');
+  box.append(el);
+  while (box.children.length > 3) box.firstElementChild.remove();
+  setTimeout(() => { el.classList.add('out'); setTimeout(() => el.remove(), 300); }, ms);
+}
+let modalOpen = false;
+function modal({ title, body, buttons = [{ label: 'OK', value: true, kind: 'primary' }], wide = false }) {
+  return new Promise(resolve => {
+    const back = document.createElement('div');
+    back.className = 'modal-back';
+    back.innerHTML = `<div class="modal${wide ? ' wide' : ''}" role="dialog" aria-modal="true" aria-label="${esc(title)}"><header>${esc(title)}</header><div class="body"></div><footer></footer></div>`;
+    const bodyEl = back.querySelector('.body'), foot = back.querySelector('footer');
+    if (typeof body === 'string') bodyEl.innerHTML = body; else if (body) bodyEl.append(body);
+    const val = b => (typeof b.value === 'function' ? b.value(bodyEl) : b.value);
+    const close = v => { modalOpen = false; back.remove(); document.removeEventListener('keydown', onKey, true); resolve(v); };
+    for (const b of buttons) {
+      const el = document.createElement('button');
+      el.type = 'button'; el.textContent = b.label;
+      if (b.kind) el.className = b.kind;
+      el.onclick = () => close(val(b));
+      foot.append(el);
+    }
+    const onKey = e => {
+      if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); close(null); }
+      else if (e.key === 'Enter' && !['TEXTAREA', 'BUTTON'].includes(e.target.tagName)) {
+        const p = buttons.find(b => b.kind === 'primary');
+        if (p) { e.preventDefault(); e.stopPropagation(); close(val(p)); }
+      }
+    };
+    document.addEventListener('keydown', onKey, true);
+    back.addEventListener('pointerdown', e => { if (e.target === back) close(null); });
+    document.body.append(back);
+    modalOpen = true;
+    const first = bodyEl.querySelector('input,select') || foot.querySelector('.primary');
+    first?.focus();
+    if (first?.select) first.select();
+  });
+}
+function promptModal(title, value = '', placeholder = '') {
+  const body = `<input value="${esc(value)}" placeholder="${esc(placeholder)}" spellcheck="false" autocomplete="off">`;
+  return modal({ title, body, buttons: [{ label: 'Cancel', value: null }, { label: 'OK', kind: 'primary', value: b => b.querySelector('input').value }] });
+}
+const confirmModal = (title, text, ok = 'OK') => modal({ title, body: `<p>${esc(text)}</p>`, buttons: [{ label: 'Cancel', value: false }, { label: ok, kind: 'primary', value: true }] });
+function showHelp() {
+  const rows = [
+    ['V / N / B / T', 'Select, place node, place beam, place triangle'],
+    ['Left-drag · Right-drag · Wheel', 'Orbit · pan · zoom (zooms toward the cursor)'],
+    ['Click', 'Select (in Select mode); node/beam/triangle modes create things'],
+    ['Shift / Ctrl + click', 'Add to / toggle the selection'],
+    ['Shift + drag', 'Box-select nodes (adds). Ctrl + drag removes from the selection'],
+    ['Ctrl + click (Node mode)', 'Place the node on the view plane instead of the mesh surface'],
+    ['Esc · Right-click', 'Cancel the beam/triangle in progress, or clear the selection'],
+    ['Delete / Backspace', 'Delete the selection (beams and triangles on deleted nodes go too)'],
+    ['F', 'Frame the selection (or everything)'],
+    ['Ctrl + A', 'Select everything in the current list tab'],
+    ['Ctrl + Z · Ctrl + Shift + Z / Ctrl + Y', 'Undo · redo'],
+    ['Ctrl + S', 'Save the project file'],
+  ];
+  modal({
+    title: 'Shortcuts & tips', wide: true,
+    body: `<table class="keys">${rows.map(([k, v]) => `<tr><td>${esc(k)}</td><td>${esc(v)}</td></tr>`).join('')}</table>
+      <p style="margin-top:14px"><b>Coordinates.</b> All positions are BeamNG coordinates in metres: <span style="color:var(--x)">+X</span> is the vehicle's left, <span style="color:var(--y)">−Y</span> is the front, <span style="color:var(--z)">+Z</span> is up.
+      glTF and OBJ files are Y-up by convention (Blender's default export), which lines Blender coordinates up 1:1 with BeamNG. If your mesh arrives lying on its side, switch <i>Up axis</i> in the Mesh &amp; view tab.</p>
+      <p><b>Triangles.</b> The green side is the front face (nodes picked counter-clockwise as seen from that side); red is the back. Use <i>Flip winding</i> to swap.</p>
+      <p><b>Groups.</b> Node groups are written as the jbeam <code>"group"</code> property (used by flexbodies). Beam and triangle groups are for organisation and are written as <code>// group: …</code> comments, which this tool reads back on import.</p>
+      <p><b>Unset properties.</b> "(not set)" means the key is omitted and BeamNG's default applies.</p>`,
+    buttons: [{ label: 'Close', value: null, kind: 'primary' }],
+  });
+}
+
+/* ============================ UI scheduling ============================ */
+const uiDirty = new Set();
+let uiQueued = false;
+function scheduleUI(...parts) {
+  parts.forEach(p => uiDirty.add(p));
+  if (!uiQueued) { uiQueued = true; requestAnimationFrame(flushUI); }
+}
+function flushUI() {
+  uiQueued = false;
+  const d = new Set(uiDirty);
+  uiDirty.clear();
+  if (d.has('tools')) renderTools();
+  if (d.has('outliner')) renderOutliner();
+  if (d.has('props')) renderProps();
+  if (d.has('part')) renderPart();
+  if (d.has('scene')) renderScene();
+  if (d.has('status')) renderStatus();
+}
+// Re-renders a panel while keeping focus, caret and any not-yet-committed text in the focused field.
+function preserveFocus(container, fn) {
+  const a = document.activeElement;
+  const fid = a && container.contains(a) ? a.dataset.fid : null;
+  const typed = fid && a.tagName === 'INPUT' && a.value !== a.defaultValue ? a.value : null;
+  let s0 = null, s1 = null;
+  try { if (fid) { s0 = a.selectionStart; s1 = a.selectionEnd; } } catch { /* not a text input */ }
+  const st = container.scrollTop;
+  fn();
+  container.scrollTop = st;
+  if (!fid) return;
+  const el = container.querySelector(`[data-fid="${CSS.escape(fid)}"]`);
+  if (!el) return;
+  if (typed !== null) el.value = typed;
+  el.focus({ preventScroll: true });
+  try { if (s0 != null) el.setSelectionRange(s0, s1); } catch { /* not a text input */ }
+}
+function switchRTab(t) {
+  ui.rtab = t;
+  $$('#rtabs .tab').forEach(b => b.classList.toggle('active', b.dataset.rtab === t));
+  for (const id of ['sel', 'part', 'scene']) $('#rp-' + id).hidden = id !== t;
+}
+function switchOTab(t) {
+  ui.otab = t;
+  $$('#otabs .tab').forEach(b => b.classList.toggle('active', b.dataset.otab === t));
+  renderOutliner();
+}
+
+/* ============================== tool panel ============================== */
+function renderTools() {
+  $$('.mode').forEach(b => b.classList.toggle('active', b.dataset.mode === ui.mode));
+  const el = $('#tool-opts');
+  preserveFocus(el, () => {
+    let h = '';
+    if (ui.mode === 'node') {
+      h += `<div class="row"><label title="Name for the next node; leave empty for automatic names">Next name</label><input data-tool="nextName" data-fid="t-next" value="${esc(ui.nextName)}" placeholder="${esc(autoName())}" spellcheck="false" autocomplete="off"></div>
+        <div class="row"><label title="Automatic names are prefix + number">Auto name</label><div class="pair"><input data-tool="namePrefix" data-fid="t-prefix" value="${esc(ui.namePrefix)}" title="Prefix" spellcheck="false" autocomplete="off"><input data-tool="nameDigits" data-fid="t-digits" type="number" min="1" max="6" value="${ui.nameDigits}" title="Digits"></div></div>`;
+    }
+    if (ui.mode === 'beam') h += `<label class="check"><input type="checkbox" data-tool="chain" ${ui.chain ? 'checked' : ''}> Chain: next beam starts at the last node</label>`;
+    h += `<div class="row"><label title="New nodes, beams and triangles are added to this group">New items to</label><select data-tool="activeGroup" data-fid="t-ag"><option value="">(no group)</option>${model.groups.map(g => `<option value="${esc(g)}"${g === ui.activeGroup ? ' selected' : ''}>${esc(g)}</option>`).join('')}</select></div>`;
+    const hints = {
+      select: 'Click to select · <b>Shift/Ctrl+click</b> toggles · <b>Shift+drag</b> box-selects nodes · drag the gizmo arrows to move a node · <b>Del</b> deletes.',
+      node: 'Click the mesh to place a node on its surface. <b>Ctrl+click</b> places it on the plane through the orbit centre facing the camera. Clicking an existing node selects it.',
+      beam: 'Click two nodes to connect them. <b>Esc</b> or right-click cancels. Colour shows the beam type.',
+      tri: 'Click three nodes. Picking them counter-clockwise makes the side facing you the front (green).',
+    };
+    h += `<p class="hint">${hints[ui.mode]}</p>`;
+    el.innerHTML = h;
+  });
+}
+
+/* =============================== outliner =============================== */
+function renderOutliner() {
+  $('#cnt-nodes').textContent = model.nodes.length;
+  $('#cnt-beams').textContent = model.beams.length;
+  $('#cnt-tris').textContent = model.tris.length;
+  $('#cnt-groups').textContent = model.groups.length;
+  $('#gnew-row').hidden = ui.otab !== 'groups';
+  const list = $('#outliner'), st = list.scrollTop, f = ui.filter.trim().toLowerCase(), LIMIT = 3000;
+  const match = (...s) => !f || s.some(x => String(x).toLowerCase().includes(f));
+  const rows = [];
+  let total = 0, empty = '';
+  const item = (k, main, sub, kind, extra = '') => `<div class="item${sel.has(k) ? ' sel' : ''}" data-key="${k}"><span class="kind ${kind}"></span><span class="nm">${main}</span>${extra}<span class="sub">${sub}</span></div>`;
+  if (ui.otab === 'nodes') {
+    empty = 'No nodes yet. Press N and click in the viewport.';
+    for (const n of model.nodes) {
+      if (!match(n.name, ...n.groups)) continue;
+      if (++total <= LIMIT) rows.push(item('n:' + n.id, esc(n.name), esc(n.groups.join(', ')), 'n'));
+    }
+  } else if (ui.otab === 'beams') {
+    empty = 'No beams yet. Press B and click two nodes.';
+    for (const b of model.beams) {
+      const a = nodeName(b.n[0]), c = nodeName(b.n[1]);
+      if (!match(a, c, ...b.groups)) continue;
+      const t = b.props.beamType && b.props.beamType !== '|NORMAL' ? `<span class="badge">${esc(String(b.props.beamType).replace('|', '').slice(0, 5).toLowerCase())}</span>` : '';
+      if (++total <= LIMIT) rows.push(item('b:' + b.id, `${esc(a)} – ${esc(c)}`, esc(b.groups.join(', ')), 'b', t));
+    }
+  } else if (ui.otab === 'tris') {
+    empty = 'No triangles yet. Press T and click three nodes.';
+    for (const t of model.tris) {
+      const ns = t.n.map(nodeName);
+      if (!match(...ns, ...t.groups)) continue;
+      if (++total <= LIMIT) rows.push(item('t:' + t.id, ns.map(esc).join(' · '), esc(t.groups.join(', ')), 't'));
+    }
+  } else {
+    empty = 'No groups yet. Type a name above and press Add.';
+    const cnt = new Map(model.groups.map(g => [g, [0, 0, 0]]));
+    [model.nodes, model.beams, model.tris].forEach((arr, i) => { for (const e of arr) for (const g of e.groups) cnt.get(g) && cnt.get(g)[i]++; });
+    for (const g of model.groups) {
+      if (!match(g)) continue;
+      total++;
+      const [cn, cb, ct] = cnt.get(g);
+      rows.push(`<div class="gitem" data-group="${esc(g)}" title="Click to select members (Ctrl+click adds)"><span class="sw" style="background:${groupCss(g)}"></span><span class="nm">${esc(g)}</span><span class="sub">${cn}n · ${cb}b · ${ct}t</span><span class="gbtns"><button class="icon" data-gact="assign" title="Add the selection to this group">+</button><button class="icon" data-gact="unassign" title="Remove the selection from this group">−</button><button class="icon" data-gact="rename" title="Rename">✎</button><button class="icon" data-gact="delete" title="Delete the group (members are kept)">×</button></span></div>`);
+    }
+  }
+  list.innerHTML = rows.join('') + (total > LIMIT ? `<div class="more">${fmtInt(total - LIMIT)} more — use the filter</div>` : '') + (!total ? `<div class="empty">${f ? 'Nothing matches the filter.' : empty}</div>` : '');
+  list.scrollTop = st;
+  if (scrollOutlinerToSel) {
+    scrollOutlinerToSel = false;
+    list.querySelector('.item.sel')?.scrollIntoView({ block: 'nearest' });
+  }
+}
+
+/* ============================ property panels ============================ */
+function holdersFor(kind, target) {
+  if (target === 'defaults') return [{ props: model.defaults[kind === 'n' ? 'node' : kind === 'b' ? 'beam' : 'tri'] }];
+  return kind === 'n' ? selNodes() : kind === 'b' ? selBeams() : selTris();
+}
+function fieldHTML(kind, target, holders, f) {
+  const vals = holders.map(h => h.props[f.key]);
+  const mixed = vals.some(v => !same(v, vals[0]));
+  const v = mixed ? undefined : vals[0];
+  const attrs = `data-bind="prop" data-kind="${kind}" data-target="${target}" data-key="${esc(f.key)}" data-ftype="${f.type}" data-fid="${esc(`${target}.${kind}.${f.key}`)}"`;
+  let ctl;
+  if (f.type === 'bool' || f.type === 'enum') {
+    const opts = f.type === 'bool' ? ['true', 'false'] : [...f.options];
+    const cur = v === undefined ? '' : String(v);
+    if (cur && !opts.includes(cur)) opts.push(cur);
+    ctl = `<select ${attrs}>${mixed ? '<option value="__mixed" selected>(mixed)</option>' : ''}<option value=""${!mixed && cur === '' ? ' selected' : ''}>(not set)</option>${opts.map(o => `<option value="${esc(o)}"${!mixed && cur === o ? ' selected' : ''}>${esc(o)}</option>`).join('')}</select>`;
+  } else {
+    ctl = `<input ${attrs} value="${v === undefined ? '' : esc(typeof v === 'string' ? v : J(v))}" placeholder="${mixed ? '(mixed)' : '(not set)'}" spellcheck="false" autocomplete="off">`;
+  }
+  return `<div class="row"><label title="${esc(f.hint ? `${f.key}: ${f.hint}` : f.key)}">${esc(f.key)}</label>${ctl}</div>`;
+}
+const fieldsHTML = (kind, target, holders, fields) => fields.map(f => fieldHTML(kind, target, holders, f)).join('');
+function customHTML(kind, target, holders, known) {
+  const keys = [];
+  for (const h of holders) for (const k of Object.keys(h.props)) if (!known.has(k) && !keys.includes(k)) keys.push(k);
+  const rows = keys.map(k => {
+    const vals = holders.map(h => h.props[k]);
+    const mixed = vals.some(v => !same(v, vals[0]));
+    return `<div class="crow"><span class="ck" title="${esc(k)}">${esc(k)}</span><input data-bind="custom" data-kind="${kind}" data-target="${target}" data-key="${esc(k)}" data-fid="${esc(`${target}.${kind}.c.${k}`)}" value="${mixed ? '' : esc(J(vals[0]))}" placeholder="${mixed ? '(mixed)' : ''}" spellcheck="false" autocomplete="off"><button class="icon" data-act="custom-del" data-kind="${kind}" data-target="${target}" data-key="${esc(k)}" title="Remove this property">×</button></div>`;
+  }).join('');
+  return `<div class="sub-h">Other properties</div>${rows}<div class="custom-add"><input class="cnk" placeholder="key" data-fid="${target}.${kind}.cnk" spellcheck="false" autocomplete="off"><input class="cnv" placeholder="value (JSON)" data-fid="${target}.${kind}.cnv" spellcheck="false" autocomplete="off" title='Numbers, true/false, "strings", [arrays] or {objects}. Plain text is stored as a string.'><button type="button" data-act="custom-add" data-kind="${kind}" data-target="${target}">Add</button></div>`;
+}
+function groupsHTML(kind, holders) {
+  const counts = new Map();
+  holders.forEach(h => h.groups.forEach(g => counts.set(g, (counts.get(g) || 0) + 1)));
+  const chips = [...counts].map(([g, c]) => `<span class="chip" style="--gc:${groupCss(g)}"><i></i>${esc(g)}${holders.length > 1 && c < holders.length ? `<em>${c}/${holders.length}</em>` : ''}<button type="button" data-act="group-remove" data-kind="${kind}" data-group="${esc(g)}" title="Remove from this group">×</button></span>`).join('');
+  const opts = model.groups.filter(g => counts.get(g) !== holders.length).map(g => `<option value="${esc(g)}">${esc(g)}</option>`).join('');
+  return `<div class="row top"><label>groups</label><div class="chips">${chips}<select class="gadd" data-bind="group-add" data-kind="${kind}"><option value="">+ add…</option>${opts}<option value="__new">New group…</option></select></div></div>`;
+}
+function nodeSectionHTML(nodes) {
+  const single = nodes.length === 1 ? nodes[0] : null;
+  let head = `<span class="kind n"></span><b>${nodes.length}</b> nodes`;
+  if (single) { const deg = model.beams.filter(b => b.n.includes(single.id)).length; head = `<span class="kind n"></span>Node <b>${esc(single.name)}</b><span class="muted">${deg} beam${deg === 1 ? '' : 's'}</span>`; }
+  const pv = [0, 1, 2].map(a => (nodes.every(n => n.pos[a] === nodes[0].pos[a]) ? String(r6(nodes[0].pos[a])) : null));
+  return `<section class="psec"><h3>${head}</h3>
+    ${single ? `<div class="row"><label>name</label><input data-bind="name" data-fid="sel.n.name" value="${esc(single.name)}" spellcheck="false" autocomplete="off"></div>` : ''}
+    <div class="row"><label title="BeamNG coordinates in metres">position</label><div class="xyz">${[0, 1, 2].map(a => `<label><span>${'XYZ'[a]}</span><input data-bind="pos" data-axis="${a}" data-fid="sel.n.pos${a}" value="${pv[a] ?? ''}" placeholder="${pv[a] === null ? 'mixed' : ''}" spellcheck="false" autocomplete="off"></label>`).join('')}</div></div>
+    ${groupsHTML('n', nodes)}
+    ${fieldsHTML('n', 'sel', nodes, NODE_FIELDS)}
+    ${customHTML('n', 'sel', nodes, NODE_KNOWN)}
+    <div class="btnrow">
+      <button type="button" data-act="sel-connected">${single ? 'Select its beams' : 'Select beams between'}</button>
+      ${nodes.length >= 2 ? '<button type="button" data-act="connect-pairs" title="Create a beam between every pair of selected nodes">Connect all</button>' : ''}
+      ${nodes.length === 3 ? '<button type="button" data-act="make-tri" title="Uses the order in which the nodes were selected">Make triangle</button>' : ''}
+      <button type="button" data-act="frame-sel">Frame</button>
+      <button type="button" class="danger" data-act="delete-kind" data-kind="n">Delete</button>
+    </div></section>`;
+}
+function beamSectionHTML(beams) {
+  const single = beams.length === 1 ? beams[0] : null;
+  const head = single
+    ? `<span class="kind b"></span>Beam <b>${esc(nodeName(single.n[0]))}</b>–<b>${esc(nodeName(single.n[1]))}</b><span class="muted">${beamLen(single).toFixed(3)} m</span>`
+    : `<span class="kind b"></span><b>${beams.length}</b> beams`;
+  const types = new Set(beams.map(b => b.props.beamType ?? '|NORMAL'));
+  const type = types.size === 1 ? [...types][0] : null;
+  const typeKeys = (type && BEAM_TYPE_FIELDS[type]) || [];
+  const known = new Set([...BEAM_KNOWN, ...typeKeys]);
+  return `<section class="psec"><h3>${head}</h3>
+    ${groupsHTML('b', beams)}
+    ${fieldsHTML('b', 'sel', beams, BEAM_FIELDS)}
+    ${typeKeys.length ? `<div class="sub-h">${esc(type.replace('|', '').toLowerCase())} beam settings</div>${fieldsHTML('b', 'sel', beams, typeKeys.map(key => ({ key, type: 'num' })))}` : ''}
+    ${customHTML('b', 'sel', beams, known)}
+    <div class="btnrow"><button type="button" data-act="sel-nodes-of" data-kind="b">Select nodes</button><button type="button" data-act="frame-sel">Frame</button><button type="button" class="danger" data-act="delete-kind" data-kind="b">Delete</button></div></section>`;
+}
+function triSectionHTML(tris) {
+  const single = tris.length === 1 ? tris[0] : null;
+  const head = single ? `<span class="kind t"></span>Triangle ${single.n.map(id => `<b>${esc(nodeName(id))}</b>`).join(' · ')}` : `<span class="kind t"></span><b>${tris.length}</b> triangles`;
+  return `<section class="psec"><h3>${head}</h3>
+    ${groupsHTML('t', tris)}
+    ${fieldsHTML('t', 'sel', tris, TRI_FIELDS)}
+    ${customHTML('t', 'sel', tris, TRI_KNOWN)}
+    <div class="btnrow"><button type="button" data-act="flip-tri" title="Swap the front and back face">Flip winding</button><button type="button" data-act="sel-nodes-of" data-kind="t">Select nodes</button><button type="button" class="danger" data-act="delete-kind" data-kind="t">Delete</button></div></section>`;
+}
+function renderProps() {
+  const root = $('#rp-sel');
+  preserveFocus(root, () => {
+    const nodes = selNodes(), beams = selBeams(), tris = selTris();
+    if (!nodes.length && !beams.length && !tris.length) {
+      root.innerHTML = `<div class="empty-sel"><p>Nothing selected.</p><p class="muted">Click a node, beam or triangle in the viewport or in the list on the left. Shift+drag in Select mode box-selects nodes.</p><p class="muted">Part name, export options and the default properties for new items are in <a href="#" data-act="tab" data-tab="part">Part &amp; export</a>.</p></div>`;
+      return;
+    }
+    root.innerHTML = (nodes.length ? nodeSectionHTML(nodes) : '') + (beams.length ? beamSectionHTML(beams) : '') + (tris.length ? triSectionHTML(tris) : '');
+  });
+}
+function renderPart() {
+  const el = $('#rp-part'), P = model.part, E = settings.export;
+  const def = model.defaults;
+  let weight = 0, unset = 0;
+  for (const n of model.nodes) { const w = Number(n.props.nodeWeight); if (Number.isFinite(w)) weight += w; else unset++; }
+  preserveFocus(el, () => {
+    el.innerHTML = `
+    <section class="psec"><h3 class="caps">Part</h3>
+      <div class="row"><label title="Top-level key of the part in the .jbeam file">Part name</label><input data-part="name" data-fid="p-name" value="${esc(P.name)}" spellcheck="false" autocomplete="off"></div>
+      <div class="row"><label title="Which slot this part fits into; main for a vehicle's root part">slotType</label><input data-part="slotType" data-fid="p-slot" value="${esc(P.slotType)}" spellcheck="false" autocomplete="off"></div>
+      <div class="row"><label title="information.name, shown in the parts selector">Display name</label><input data-part="infoName" data-fid="p-iname" value="${esc(P.infoName)}" autocomplete="off"></div>
+      <div class="row"><label>Authors</label><input data-part="authors" data-fid="p-auth" value="${esc(P.authors)}" autocomplete="off"></div>
+    </section>
+    <section class="psec"><h3 class="caps">Export</h3>
+      <div class="row"><label>Decimals</label><input type="number" min="1" max="8" data-exp="decimals" data-fid="e-dec" value="${E.decimals}"></div>
+      <label class="check"><input type="checkbox" data-exp="info" ${E.info ? 'checked' : ''}> Write the "information" block</label>
+      <label class="check"><input type="checkbox" data-exp="comments" ${E.comments ? 'checked' : ''}> Write beam/triangle groups as comments</label>
+      ${model.extraSections ? `<label class="check"><input type="checkbox" data-exp="keepExtra" ${E.keepExtra ? 'checked' : ''}> Keep other imported sections <span class="muted">(${esc(Object.keys(model.extraSections).join(', '))})</span></label>` : ''}
+      <button type="button" class="primary wide" data-act="export">Export .jbeam…</button>
+    </section>
+    <section class="psec"><h3 class="caps">Defaults for new nodes</h3>${fieldsHTML('n', 'defaults', [{ props: def.node }], NODE_FIELDS)}${customHTML('n', 'defaults', [{ props: def.node }], NODE_KNOWN)}</section>
+    <section class="psec"><h3 class="caps">Defaults for new beams</h3>${fieldsHTML('b', 'defaults', [{ props: def.beam }], BEAM_FIELDS)}${customHTML('b', 'defaults', [{ props: def.beam }], BEAM_KNOWN)}</section>
+    <section class="psec"><h3 class="caps">Defaults for new triangles</h3>${fieldsHTML('t', 'defaults', [{ props: def.tri }], TRI_FIELDS)}${customHTML('t', 'defaults', [{ props: def.tri }], TRI_KNOWN)}</section>
+    <section class="psec"><h3 class="caps">Totals</h3>
+      <div class="stat"><span>Nodes · beams · triangles</span><b>${model.nodes.length} · ${model.beams.length} · ${model.tris.length}</b></div>
+      <div class="stat"><span title="Sum of nodeWeight">Node weight</span><b>${weight.toFixed(1)} kg</b></div>
+      ${unset ? `<div class="stat"><span>Nodes without nodeWeight</span><b>${unset}</b></div>` : ''}
+    </section>`;
+  });
+}
+function renderScene() {
+  const el = $('#rp-scene'), m = settings.mesh, d = settings.display;
+  const chk = (attr, k, on, label, title = '') => `<label class="check" title="${esc(title)}"><input type="checkbox" ${attr}="${k}" ${on ? 'checked' : ''}> ${label}</label>`;
+  const range = (k, min, max, step, v, label, unit) => `<div class="row"><label>${label}</label><div class="rng"><input type="range" data-disp="${k}" data-unit="${unit}" min="${min}" max="${max}" step="${step}" value="${v}"><span data-out="${k}">${v}${unit}</span></div></div>`;
+  preserveFocus(el, () => {
+    el.innerHTML = `
+    <section class="psec"><h3 class="caps">Reference mesh</h3>
+      ${meshInfo ? `<div class="meshcard"><b title="${esc(meshInfo.name)}">${esc(meshInfo.name)}</b><span>${fmtInt(meshInfo.tris)} triangles</span><span>${esc(meshSizeText())}</span></div>`
+        : '<p class="muted" style="margin:0 0 6px">No mesh loaded. Import an OBJ, GLB or glTF file (for .gltf, select it together with its .bin and textures) to place nodes on its surface.</p>'}
+      <div class="btnrow" style="margin:0 0 8px"><button type="button" data-act="import-mesh">${meshInfo ? 'Replace…' : 'Import mesh…'}</button>${meshInfo ? '<button type="button" data-act="frame-mesh">Frame</button><button type="button" class="danger" data-act="remove-mesh">Remove</button>' : ''}</div>
+      ${meshInfo ? `
+      ${chk('data-mesh', 'visible', m.visible, 'Visible')}
+      <div class="row"><label>Opacity</label><input type="range" data-mesh="opacity" min="0.05" max="1" step="0.05" value="${m.opacity}"></div>
+      ${chk('data-mesh', 'wireframe', m.wireframe, 'Wireframe')}
+      ${chk('data-mesh', 'original', m.original, 'Use the file\'s own materials')}
+      <div class="row"><label>Up axis</label><select data-mesh="upAxis"><option value="y"${m.upAxis === 'y' ? ' selected' : ''}>Y-up (glTF, OBJ)</option><option value="z"${m.upAxis === 'z' ? ' selected' : ''}>Z-up (BeamNG)</option></select></div>
+      <div class="row"><label>Turn around Z</label><select data-mesh="yaw">${[0, 90, 180, 270].map(a => `<option value="${a}"${+m.yaw === a ? ' selected' : ''}>${a}°</option>`).join('')}</select></div>
+      <div class="row"><label title="0.01 if the file is in centimetres, 0.001 for millimetres">Scale</label><input data-mesh="scale" data-fid="m-scale" value="${m.scale}" spellcheck="false" autocomplete="off"></div>
+      <div class="row"><label>Offset (m)</label><div class="xyz">${[0, 1, 2].map(a => `<label><span>${'XYZ'[a]}</span><input data-mesh="offset" data-axis="${a}" data-fid="m-off${a}" value="${m.offset[a]}" spellcheck="false" autocomplete="off"></label>`).join('')}</div></div>
+      ${chk('data-set', 'embedMesh', settings.embedMesh, 'Embed the mesh in saved project files', 'Makes project files self-contained but larger')}` : ''}
+    </section>
+    <section class="psec"><h3 class="caps">Display</h3>
+      ${range('nodePx', 2, 12, 1, d.nodePx, 'Node size', ' px')}
+      ${range('beamPx', 1, 6, 0.5, d.beamPx, 'Beam width', ' px')}
+      <div class="row"><label>Node labels</label><select data-disp="labels"><option value="none"${d.labels === 'none' ? ' selected' : ''}>None</option><option value="sel"${d.labels === 'sel' ? ' selected' : ''}>Selected &amp; hovered</option><option value="all"${d.labels === 'all' ? ' selected' : ''}>All</option></select></div>
+      ${chk('data-disp', 'xray', d.xray, 'Show nodes and beams through the mesh')}
+      ${chk('data-disp', 'colorByGroup', d.colorByGroup, 'Colour by group')}
+      ${chk('data-disp', 'gizmo', d.gizmo, 'Move gizmo on a selected node')}
+      ${chk('data-disp', 'grid', d.grid, 'Ground grid (0.25 m)')}
+      ${chk('data-disp', 'showNodes', d.showNodes, 'Nodes')}
+      ${chk('data-disp', 'showBeams', d.showBeams, 'Beams')}
+      ${chk('data-disp', 'showTris', d.showTris, 'Triangles')}
+    </section>`;
+  });
+}
+function renderStatus() {
+  let hint = '';
+  if (ui.mode === 'beam') hint = ui.pending.length ? `From <b>${esc(nodeName(ui.pending[0]))}</b>: click the second node · Esc cancels` : 'Click the first node of the beam';
+  else if (ui.mode === 'tri') hint = ui.pending.length ? `${ui.pending.map(id => `<b>${esc(nodeName(id))}</b>`).join(' → ')}: click node ${ui.pending.length + 1} of 3 · Esc cancels` : 'Click three nodes (counter-clockwise = front face)';
+  else if (ui.mode === 'node') hint = 'Click the mesh to place a node · Ctrl+click: view plane';
+  else hint = 'Click to select · Shift+drag box select · Left-drag orbit · Right-drag pan';
+  $('#st-hint').innerHTML = hint;
+  $('#st-count').textContent = `${model.nodes.length} nodes · ${model.beams.length} beams · ${model.tris.length} tris${sel.size ? ` · ${sel.size} selected` : ''}`;
+  $('#empty').hidden = !!(meshObject || model.nodes.length || model.beams.length);
+}
+function applyDisplay() {
+  rebuildViz();
+  updateGizmo();
+}
+
+/* ============================ viewport input ============================ */
+const mouse = { x: 0, y: 0, in: false };
+let down = null, hoverQueued = false;
+const localXY = e => { const r = canvas.getBoundingClientRect(); return { x: e.clientX - r.left, y: e.clientY - r.top }; };
+
+function setMode(m) {
+  if (ui.mode === m) return;
+  ui.mode = m;
+  ui.pending = [];
+  ghost.visible = false;
+  pendLine.visible = false;
+  hover = null;
+  canvas.style.cursor = m === 'select' ? '' : 'crosshair';
+  recolorAll();
+  updateGizmo();
+  scheduleUI('tools', 'status');
+  if (mouse.in) scheduleHover();
+}
+function cancelPending() {
+  if (!ui.pending.length) return false;
+  ui.pending = [];
+  pendLine.visible = false;
+  recolorAll();
+  scheduleUI('status');
+  return true;
+}
+function describeCoords(p) { const [x, y, z] = fromThree(p); return `x ${x.toFixed(3)}  y ${y.toFixed(3)}  z ${z.toFixed(3)}`; }
+
+// Pointer-down on the viewport is seen here first (capture phase) so Shift/Ctrl+drag can become a box
+// selection before OrbitControls or the gizmo react to it.
+vpEl.addEventListener('pointerdown', e => {
+  if (e.target !== canvas) return;
+  const { x, y } = localXY(e);
+  if (e.button === 0 && ui.mode === 'select' && (e.shiftKey || e.ctrlKey || e.metaKey)) {
+    e.stopPropagation();
+    canvas.setPointerCapture(e.pointerId);
+    down = { x, y, button: 0, box: true, remove: !e.shiftKey };
+    return;
+  }
+  down = { x, y, button: e.button, box: false };
+}, true);
+
+vpEl.addEventListener('pointermove', e => {
+  const { x, y } = localXY(e);
+  mouse.x = x; mouse.y = y;
+  if (down?.box) { boxRect = [down.x, down.y, x, y]; requestRender(); return; }
+  mouse.in = e.target === canvas;
+  if (e.buttons) return;
+  scheduleHover();
+});
+vpEl.addEventListener('pointerleave', () => { mouse.in = false; scheduleHover(); });
+
+vpEl.addEventListener('pointerup', e => {
+  if (!down) return;
+  const d = down;
+  down = null;
+  const { x, y } = localXY(e);
+  const moved = Math.hypot(x - d.x, y - d.y) > 4;
+  const wasGizmo = gizmoPressed;
+  gizmoPressed = false;
+  if (d.box) {
+    boxRect = null;
+    if (moved) boxSelect(d, x, y); else clickSelect(x, y, true);
+    requestRender();
+    return;
+  }
+  if (moved || wasGizmo) return;
+  if (d.button === 2) { cancelPending(); return; }
+  if (d.button !== 0) return;
+  if (ui.mode === 'select') clickSelect(x, y, false);
+  else if (ui.mode === 'node') clickNode(x, y, e.ctrlKey || e.metaKey);
+  else clickLink(x, y);
+});
+
+function clickSelect(x, y, toggle) {
+  const hit = pickAt(x, y);
+  if (!toggle) sel.clear();
+  if (hit) {
+    const k = keyOf(hit.type, hit.el.id);
+    if (toggle && sel.has(k)) sel.delete(k); else sel.add(k);
+  }
+  selectionChanged(true);
+}
+function boxSelect(d, x, y) {
+  ensureProj();
+  const x0 = Math.min(d.x, x), x1 = Math.max(d.x, x), y0 = Math.min(d.y, y), y1 = Math.max(d.y, y);
+  let count = 0;
+  model.nodes.forEach((n, i) => {
+    if (Number.isNaN(proj[i * 3 + 2])) return;
+    const px = proj[i * 3], py = proj[i * 3 + 1];
+    if (px < x0 || px > x1 || py < y0 || py > y1) return;
+    count++;
+    if (d.remove) sel.delete('n:' + n.id); else sel.add('n:' + n.id);
+  });
+  selectionChanged(true);
+  if (count) toast(`${d.remove ? 'Removed' : 'Added'} ${count} node${count > 1 ? 's' : ''}`);
+}
+function clickNode(x, y, viewPlane) {
+  const existing = pickNode(x, y);
+  if (existing) { setSelection(['n:' + existing.id]); return; }
+  const hit = viewPlane ? null : hitMesh(x, y);
+  const p = hit ? hit.point : hitViewPlane(x, y);
+  if (!p) return;
+  addNode(fromThree(p));
+  scheduleHover();
+}
+function clickLink(x, y) {
+  const n = pickNode(x, y);
+  if (!n) return;
+  const i = ui.pending.indexOf(n.id);
+  if (i >= 0) ui.pending.splice(i, 1);
+  else if (ui.mode === 'beam') {
+    if (!ui.pending.length) ui.pending = [n.id];
+    else {
+      const b = addBeam(ui.pending[0], n.id);
+      ui.pending = ui.chain ? [n.id] : [];
+      if (b) setSelection(['b:' + b.id], false);
+    }
+  } else {
+    ui.pending.push(n.id);
+    if (ui.pending.length === 3) {
+      const t = addTri(ui.pending);
+      ui.pending = [];
+      if (t) setSelection(['t:' + t.id], false);
+    }
+  }
+  recolorAll();
+  scheduleUI('status');
+  scheduleHover();
+}
+
+function scheduleHover() { if (!hoverQueued) { hoverQueued = true; requestAnimationFrame(computeHover); } }
+function computeHover() {
+  hoverQueued = false;
+  const st = $('#st-cursor');
+  if (!mouse.in || down) {
+    ghost.visible = false;
+    if (!mouse.in) { pendLine.visible = false; st.textContent = ''; setHover(null); }
+    requestRender();
+    return;
+  }
+  const { x, y } = mouse;
+  let hk = null, cursor = null, info = '';
+  if (ui.mode === 'select') {
+    const h = pickAt(x, y);
+    if (h) hk = keyOf(h.type, h.el.id);
+  } else {
+    const n = pickNode(x, y);
+    if (n) { hk = 'n:' + n.id; cursor = toThree(n.pos); }
+  }
+  ghost.visible = false;
+  if (ui.mode === 'node' && !hk) {
+    const hit = hitMesh(x, y);
+    cursor = hit ? hit.point : hitViewPlane(x, y);
+    if (cursor) {
+      ghost.position.copy(cursor);
+      ghost.visible = true;
+      ghostMat.color.set(hit ? 0xff8a1f : 0x9aa3b5);
+      info = `${describeCoords(cursor)} · ${hit ? 'on mesh' : 'view plane'}`;
+    }
+  }
+  if ((ui.mode === 'beam' || ui.mode === 'tri') && ui.pending.length) {
+    if (!cursor) cursor = hitViewPlane(x, y);
+    const ps = ui.pending.map(id => nodeP[nodeIndex.get(id)]);
+    const segs = [];
+    if (cursor) {
+      if (ps.length === 1) segs.push([ps[0], cursor]);
+      else segs.push([ps[0], ps[1]], [ps[1], cursor], [cursor, ps[0]]);
+    }
+    setPendingSegments(segs);
+  } else pendLine.visible = false;
+  if (hk) {
+    const el = getByKey(hk);
+    if (hk[0] === 'n') info = `${el.name} · ${el.pos.map(v => v.toFixed(3)).join(', ')}`;
+    else if (hk[0] === 'b') info = `${nodeName(el.n[0])}–${nodeName(el.n[1])} · ${beamLen(el).toFixed(3)} m`;
+    else info = el.n.map(nodeName).join(' · ');
+  }
+  st.textContent = info;
+  setHover(hk);
+  requestRender();
+}
+controls.addEventListener('change', () => { projVersion++; requestRender(); });
+
+/* ================================ keyboard ================================ */
+window.addEventListener('keydown', e => {
+  const k = e.key.toLowerCase(), mod = e.ctrlKey || e.metaKey;
+  if (mod && k === 's') { e.preventDefault(); saveProject(); return; }
+  if (modalOpen) return;
+  const t = e.target;
+  if (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.tagName === 'SELECT' || t.isContentEditable) {
+    if (e.key === 'Escape') t.blur();
+    return;
+  }
+  if (mod && k === 'z') { e.preventDefault(); if (e.shiftKey) redo(); else undo(); return; }
+  if (mod && k === 'y') { e.preventDefault(); redo(); return; }
+  if (mod && k === 'a') { e.preventDefault(); selectAll(); return; }
+  if (mod || e.altKey) return;
+  switch (k) {
+    case 'v': case '1': setMode('select'); break;
+    case 'n': case '2': setMode('node'); break;
+    case 'b': case '3': setMode('beam'); break;
+    case 't': case '4': setMode('tri'); break;
+    case 'escape': if (!cancelPending() && sel.size) setSelection([], false); break;
+    case 'delete': case 'backspace': deleteSelection(); break;
+    case 'f': frameSelection(); break;
+    case '?': showHelp(); break;
+    default: return;
+  }
+  e.preventDefault();
+});
+
+/* ============================ buttons & panels ============================ */
+const actions = {
+  'new': newPart,
+  'open-project': () => $('#file-project').click(),
+  'save-project': saveProject,
+  'import-mesh': () => $('#file-mesh').click(),
+  'import-jbeam': () => $('#file-jbeam').click(),
+  'export': showExport,
+  'undo': undo,
+  'redo': redo,
+  'help': showHelp,
+  'view': el => setView(el.dataset.view),
+  'frame-all': frameAll,
+  'frame-sel': frameSelection,
+  'frame-mesh': () => { if (meshObject) frameBox(new THREE.Box3().setFromObject(meshRoot)); },
+  'remove-mesh': removeMesh,
+  'tab': el => switchRTab(el.dataset.tab),
+  'delete-kind': el => deleteKeys([...sel].filter(k => k[0] === el.dataset.kind)),
+  'sel-connected': selectConnectedBeams,
+  'connect-pairs': connectPairs,
+  'make-tri': () => { const t = addTri(selNodes().map(n => n.id)); if (t) setSelection(['t:' + t.id], false); },
+  'flip-tri': flipTris,
+  'sel-nodes-of': el => selectNodesOf(el.dataset.kind),
+  'group-create': () => { const i = $('#gnew'); if (createGroup(i.value)) i.value = ''; },
+  'group-remove': el => removeFromGroup(el.dataset.group, holdersFor(el.dataset.kind, 'sel')),
+  'custom-del': el => {
+    const hs = holdersFor(el.dataset.kind, el.dataset.target), key = el.dataset.key;
+    mutate('Remove ' + key, () => hs.forEach(h => { delete h.props[key]; }));
+  },
+  'custom-add': el => {
+    const wrap = el.closest('.custom-add'), kIn = wrap.querySelector('.cnk'), vIn = wrap.querySelector('.cnv');
+    const key = kIn.value.trim(), v = parseLoose(vIn.value);
+    if (!key) { kIn.focus(); return; }
+    if (RESERVED_KEYS.has(key) || (key === 'group' && el.dataset.kind === 'n')) { toast(`"${key}" is set through its own field`, 'warn'); return; }
+    if (v === undefined) { vIn.focus(); toast('Enter a value, e.g. 0.5, true or "text"', 'warn'); return; }
+    const hs = holdersFor(el.dataset.kind, el.dataset.target);
+    mutate(`Set ${key}`, () => hs.forEach(h => { h.props[key] = structuredClone(v); }));
+    kIn.value = vIn.value = '';
+  },
+};
+document.addEventListener('click', e => {
+  const b = e.target.closest('[data-act]');
+  if (!b || b.disabled) return;
+  e.preventDefault();
+  actions[b.dataset.act]?.(b, e);
+});
+$$('.mode').forEach(b => b.addEventListener('click', () => setMode(b.dataset.mode)));
+$$('#rtabs .tab').forEach(b => b.addEventListener('click', () => switchRTab(b.dataset.rtab)));
+$$('#otabs .tab').forEach(b => b.addEventListener('click', () => switchOTab(b.dataset.otab)));
+$('#filter').addEventListener('input', e => { ui.filter = e.target.value; renderOutliner(); });
+$('#gnew').addEventListener('keydown', e => { if (e.key === 'Enter') actions['group-create'](); });
+
+$('#tool-opts').addEventListener('input', e => {
+  const t = e.target, k = t.dataset.tool;
+  if (k === 'nextName') ui.nextName = t.value;
+  else if (k === 'namePrefix' || k === 'nameDigits') {
+    if (k === 'namePrefix') ui.namePrefix = t.value.trim(); else ui.nameDigits = clamp(parseInt(t.value, 10) || 3, 1, 6);
+    const nx = $('[data-tool="nextName"]');
+    if (nx) nx.placeholder = autoName();
+  }
+});
+$('#tool-opts').addEventListener('change', e => {
+  const t = e.target, k = t.dataset.tool;
+  if (k === 'activeGroup') ui.activeGroup = t.value;
+  if (k === 'chain') ui.chain = t.checked;
+});
+
+async function onGroupAdd(t) {
+  const kind = t.dataset.kind, v = t.value;
+  t.value = '';
+  if (!v) return;
+  const hs = holdersFor(kind, 'sel');
+  if (v !== '__new') return assignToGroup(v, hs);
+  const name = cleanGroupName((await promptModal('New group', '', 'e.g. chassis, suspension_FL')) ?? '');
+  if (!name) return;
+  if (!model.groups.includes(name) && !createGroup(name)) return;
+  assignToGroup(name, holdersFor(kind, 'sel'));
+}
+function onRightChange(e) {
+  const t = e.target, ds = t.dataset;
+  if (ds.bind === 'prop') {
+    if (t.value === '__mixed') return;
+    const hs = holdersFor(ds.kind, ds.target), key = ds.key;
+    const v = ds.ftype === 'bool' ? (t.value === '' ? undefined : t.value === 'true')
+      : ds.ftype === 'num' ? parseNumOrStr(t.value)
+      : t.value.trim() === '' ? undefined : ds.ftype === 'enum' ? t.value : t.value.trim();
+    mutate(`Set ${key}`, () => hs.forEach(h => { if (v === undefined) delete h.props[key]; else h.props[key] = v; }));
+  } else if (ds.bind === 'custom') {
+    const hs = holdersFor(ds.kind, ds.target), key = ds.key, v = parseLoose(t.value);
+    if (v === undefined && t.placeholder === '(mixed)') return;
+    mutate(`Set ${key}`, () => hs.forEach(h => { if (v === undefined) delete h.props[key]; else h.props[key] = structuredClone(v); }));
+  } else if (ds.bind === 'name') {
+    const n = selNodes()[0], name = t.value.trim();
+    if (!n || name === n.name) return;
+    if (!name) { t.value = n.name; return toast('A node needs a name', 'warn'); }
+    if (model.nodes.some(o => o !== n && o.name === name)) { t.value = n.name; return toast(`A node named "${name}" already exists`, 'err'); }
+    mutate(`Rename ${n.name} → ${name}`, () => { n.name = name; });
+  } else if (ds.bind === 'pos') {
+    const a = +ds.axis, v = parseFloat(t.value), ns = selNodes();
+    if (t.value.trim() === '') return;
+    if (!Number.isFinite(v)) { t.value = t.defaultValue; return toast('Enter a number', 'warn'); }
+    mutate(ns.length > 1 ? `Set ${'XYZ'[a]} of ${ns.length} nodes` : `Move ${ns[0].name}`, () => ns.forEach(n => { n.pos[a] = r6(v); }));
+  } else if (ds.bind === 'group-add') {
+    onGroupAdd(t);
+  } else if (ds.part) {
+    const k = ds.part, v = t.value.trim();
+    if (k === 'name' && !v) { t.value = model.part.name; return toast('The part needs a name', 'warn'); }
+    if (model.part[k] === v) return;
+    mutate(`Set ${k}`, () => { model.part[k] = v; });
+  } else if (ds.exp) {
+    const E = settings.export;
+    if (ds.exp === 'decimals') { E.decimals = clamp(parseInt(t.value, 10) || 4, 1, 8); t.value = E.decimals; }
+    else E[ds.exp] = t.checked;
+  } else if (ds.set === 'embedMesh') {
+    settings.embedMesh = t.checked;
+  } else if (ds.mesh || ds.disp) onSceneInput(e);
+}
+function onSceneInput(e) {
+  const t = e.target, ds = t.dataset;
+  if (ds.mesh) {
+    const m = settings.mesh, k = ds.mesh;
+    if (k === 'offset' || k === 'scale') {
+      if (e.type === 'input') return;
+      const v = parseFloat(t.value);
+      if (k === 'scale' && !(v > 0)) { t.value = m.scale; return toast('Scale must be greater than 0', 'warn'); }
+      if (!Number.isFinite(v)) { t.value = k === 'scale' ? m.scale : m.offset[+ds.axis]; return; }
+      if (k === 'scale') m.scale = v; else m.offset[+ds.axis] = v;
+    } else if (t.type === 'checkbox') m[k] = t.checked;
+    else if (k === 'opacity' || k === 'yaw') m[k] = Number(t.value);
+    else m[k] = t.value;
+    applyMeshSettings();
+    if (e.type === 'change' && ['scale', 'upAxis', 'yaw'].includes(k)) scheduleUI('scene');
+  } else if (ds.disp) {
+    const d = settings.display, k = ds.disp;
+    if (t.type === 'checkbox') d[k] = t.checked;
+    else if (t.type === 'range') { d[k] = Number(t.value); const o = $(`[data-out="${k}"]`); if (o) o.textContent = t.value + (ds.unit || ''); }
+    else d[k] = t.value;
+    applyDisplay();
+  }
+}
+$('#right').addEventListener('change', onRightChange);
+$('#right').addEventListener('input', e => { if (e.target.type === 'range') onSceneInput(e); });
+$('#right').addEventListener('keydown', e => {
+  if (e.key === 'Enter' && e.target.classList.contains('cnv')) { e.preventDefault(); e.target.closest('.custom-add').querySelector('[data-act="custom-add"]').click(); }
+});
+
+/* ================================ outliner ================================ */
+const outliner = $('#outliner');
+outliner.addEventListener('click', e => {
+  const gb = e.target.closest('[data-gact]'), gi = e.target.closest('.gitem');
+  if (gi) {
+    const g = gi.dataset.group;
+    if (!gb) return selectGroup(g, e.ctrlKey || e.metaKey || e.shiftKey);
+    ({ assign: () => assignToGroup(g), unassign: () => removeFromGroup(g), rename: () => renameGroup(g), delete: () => deleteGroup(g) })[gb.dataset.gact]();
+    return;
+  }
+  const it = e.target.closest('.item');
+  if (!it) return;
+  const k = it.dataset.key;
+  if (e.shiftKey && ui.lastListKey) {
+    const keys = $$('.item', outliner).map(x => x.dataset.key), a = keys.indexOf(ui.lastListKey), b = keys.indexOf(k);
+    if (a >= 0 && b >= 0) {
+      if (!(e.ctrlKey || e.metaKey)) sel.clear();
+      for (let i = Math.min(a, b); i <= Math.max(a, b); i++) sel.add(keys[i]);
+      selectionChanged();
+      return;
+    }
+  }
+  if (e.ctrlKey || e.metaKey) { if (sel.has(k)) sel.delete(k); else sel.add(k); selectionChanged(); }
+  else setSelection([k], false);
+  ui.lastListKey = k;
+});
+outliner.addEventListener('dblclick', e => { const it = e.target.closest('.item'); if (it) { setSelection([it.dataset.key], false); frameSelection(); } });
+outliner.addEventListener('mouseover', e => { const it = e.target.closest('.item'); if (it) setHover(it.dataset.key); });
+outliner.addEventListener('mouseleave', () => setHover(null));
+
+/* ============================== files & drop ============================== */
+$('#file-mesh').addEventListener('change', async e => { const fs = [...e.target.files]; e.target.value = ''; if (fs.length) await loadMeshFromFileList(fs); });
+$('#file-jbeam').addEventListener('change', async e => {
+  const f = e.target.files[0];
+  e.target.value = '';
+  if (!f) return;
+  const t = await f.text();
+  if (/\.json$/i.test(f.name) && (await loadProjectText(t, f.name, { quiet: true }))) return;
+  await importJBeamText(t, f.name);
+});
+$('#file-project').addEventListener('change', async e => { const f = e.target.files[0]; e.target.value = ''; if (f) await loadProjectText(await f.text(), f.name); });
+let dragDepth = 0;
+const hasFiles = e => [...(e.dataTransfer?.types || [])].includes('Files');
+window.addEventListener('dragenter', e => { if (!hasFiles(e)) return; e.preventDefault(); dragDepth++; $('#drop').classList.add('on'); });
+window.addEventListener('dragleave', e => { if (!hasFiles(e)) return; dragDepth = Math.max(0, dragDepth - 1); if (!dragDepth) $('#drop').classList.remove('on'); });
+window.addEventListener('dragover', e => { if (hasFiles(e)) e.preventDefault(); });
+window.addEventListener('drop', e => {
+  if (!hasFiles(e)) return;
+  e.preventDefault();
+  dragDepth = 0;
+  $('#drop').classList.remove('on');
+  handleFiles([...e.dataTransfer.files]);
+});
+window.addEventListener('beforeunload', e => {
+  if (dirty && (model.nodes.length || model.beams.length)) { e.preventDefault(); e.returnValue = ''; }
+});
+
+/* ================================= start ================================= */
+switchRTab('sel');
+switchOTab('nodes');
+modelChanged();
+scheduleUI('scene');
+resize();
+$('#boot').remove();
+window.__jbbReady = true;
+</script>
+</body>
+</html>
